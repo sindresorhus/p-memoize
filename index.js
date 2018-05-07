@@ -5,8 +5,8 @@ const mimicFn = require('mimic-fn');
 module.exports = (fn, opts) => {
 	const memoized = mem(fn, opts);
 
-	const ret = function () {
-		return memoized.apply(this, arguments).catch(err => {
+	const ret = function (...args) {
+		return memoized.apply(this, args).catch(err => {
 			mem.clear(memoized);
 			throw err;
 		});
