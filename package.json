@@ -1,52 +1,49 @@
 {
-  "name": "p-memoize",
-  "version": "1.0.0",
-  "description": "Memoize promise-returning & async functions",
-  "license": "MIT",
-  "repository": "sindresorhus/p-memoize",
-  "author": {
-    "name": "Sindre Sorhus",
-    "email": "sindresorhus@gmail.com",
-    "url": "sindresorhus.com"
-  },
-  "engines": {
-    "node": ">=4"
-  },
-  "scripts": {
-    "test": "xo && ava"
-  },
-  "files": [
-    "index.js"
-  ],
-  "keywords": [
-    "promise",
-    "memoize",
-    "mem",
-    "memoization",
-    "function",
-    "cache",
-    "caching",
-    "optimize",
-    "performance",
-    "ttl",
-    "expire",
-    "async",
-    "await",
-    "promises",
-    "time",
-    "out",
-    "cancel",
-    "bluebird"
-  ],
-  "dependencies": {
-    "mem": "^1.1.0",
-    "mimic-fn": "^1.0.0"
-  },
-  "devDependencies": {
-    "ava": "*",
-    "xo": "*"
-  },
-  "xo": {
-    "esnext": true
-  }
+	"name": "p-memoize",
+	"version": "1.0.0",
+	"description": "Memoize promise-returning & async functions",
+	"license": "MIT",
+	"repository": "sindresorhus/p-memoize",
+	"author": {
+		"name": "Sindre Sorhus",
+		"email": "sindresorhus@gmail.com",
+		"url": "sindresorhus.com"
+	},
+	"engines": {
+		"node": ">=6"
+	},
+	"scripts": {
+		"test": "xo && ava"
+	},
+	"files": [
+		"index.js"
+	],
+	"keywords": [
+		"promise",
+		"memoize",
+		"mem",
+		"memoization",
+		"function",
+		"cache",
+		"caching",
+		"optimize",
+		"performance",
+		"ttl",
+		"expire",
+		"async",
+		"await",
+		"promises",
+		"time",
+		"out",
+		"cancel",
+		"bluebird"
+	],
+	"dependencies": {
+		"mem": "^1.1.0",
+		"mimic-fn": "^1.0.0"
+	},
+	"devDependencies": {
+		"ava": "*",
+		"xo": "*"
+	}
 }
