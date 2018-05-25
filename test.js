@@ -36,3 +36,14 @@ test('does not memoize rejected promise', async t => {
 test('preserves the original function name', t => {
 	t.is(m(async function foo() {}).name, 'foo'); // eslint-disable-line func-names, prefer-arrow-callback
 });
+
+test('pMemoize.clear()', t => {
+	let i = 0;
+	const f = () => i++;
+	const memoized = m(f);
+	t.is(memoized(), 0);
+	t.is(memoized(), 0);
+	m.clear(memoized);
+	t.is(memoized(), 1);
+	t.is(memoized(), 1);
+});

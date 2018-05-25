@@ -8,7 +8,7 @@ Useful for speeding up consecutive function calls by caching the result of calls
 ## Install
 
 ```
-$ npm install --save p-memoize
+$ npm install p-memoize
 ```
 
 
@@ -19,23 +19,41 @@ const pMemoize = require('p-memoize');
 const got = require('got');
 const memGot = pMemoize(got, {maxAge: 1000});
 
-memGot('sindresorhus.com').then(() => {
-	// this call is cached
-	memGot('sindresorhus.com').then(() => {
-		setTimeout(() => {
-			// this call is not cached as the cache has expired
-			memGot('sindresorhus.com').then(() => {});
-		}, 2000);
-	});
-});
+(async () => {
+	memGot('sindresorhus.com');
+
+	// This call is cached
+	memGot('sindresorhus.com');
+
+	setTimeout(() => {
+		// This call is not cached as the cache has expired
+		memGot('sindresorhus.com');
+	}, 2000);
+})();
 ```
 
 
 ## API
 
-See the [`mem` docs](https://github.com/sindresorhus/mem#api).
+### pMemoize(input, [options])
 
-The only difference is that this module does not cache rejected promises.
+Returns a memoized version of the `input` function.
+
+#### input
+
+Type: `Function`
+
+Promise-returning or async function to be memoized.
+
+#### options
+
+Type: `Object`
+
+See the [`mem` options](https://github.com/sindresorhus/mem#options).
+
+### pMemoize.clear(fn)
+
+Clear all cached data of a memoized function.
 
 
 ## Related
