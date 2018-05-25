@@ -1,6 +1,6 @@
 {
 	"name": "p-memoize",
-	"version": "1.0.0",
+	"version": "2.0.0",
 	"description": "Memoize promise-returning & async functions",
 	"license": "MIT",
 	"repository": "sindresorhus/p-memoize",
