@@ -1,22 +1,30 @@
 'use strict';
+
 const mem = require('mem');
 const mimicFn = require('mimic-fn');
 
-const memoizedFns = new WeakMap();
+const memoizedFunctions = new WeakMap();
 
-module.exports = (fn, opts) => {
-	const memoized = mem(fn, opts);
+const pMemoize = (fn, options) => {
+	const memoized = mem(fn, options);
 
-	const ret = function (...args) {
+	const memoizedAdapter = function (...args) {
 		return memoized.apply(this, args);
 	};
 
-	mimicFn(ret, fn);
-	memoizedFns.set(ret, memoized);
+	mimicFn(memoizedAdapter, fn);
+	memoizedFunctions.set(memoizedAdapter, memoized);
 
-	return ret;
+	return memoizedAdapter;
 };
 
-module.exports.clear = fn => {
-	mem.clear(memoizedFns.get(fn));
+module.exports = pMemoize;
+module.exports.default = pMemoize;
+
+module.exports.clear = memoized => {
+	if (!memoizedFunctions.has(memoized)) {
+		throw new Error('Can\'t clear a function that was not memoized!');
+	}
+
+	mem.clear(memoizedFunctions.get(memoized));
 };
