@@ -40,7 +40,7 @@
 		"bluebird"
 	],
 	"dependencies": {
-		"mem": "^4.0.0",
+		"mem": "^4.2.0",
 		"mimic-fn": "^2.0.0"
 	},
 	"devDependencies": {

@@ -8,8 +8,8 @@ const memoizedFunctions = new WeakMap();
 const pMemoize = (fn, options) => {
 	const memoized = mem(fn, options);
 
-	const memoizedAdapter = function (...args) {
-		return memoized.apply(this, args);
+	const memoizedAdapter = function (...arguments_) {
+		return memoized.apply(this, arguments_);
 	};
 
 	mimicFn(memoizedAdapter, fn);

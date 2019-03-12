@@ -39,8 +39,8 @@ test('preserves the original function name', t => {
 
 test('pMemoize.clear()', t => {
 	let i = 0;
-	const f = () => i++;
-	const memoized = pMemoize(f);
+	const fixture = () => i++;
+	const memoized = pMemoize(fixture);
 	t.is(memoized(), 0);
 	t.is(memoized(), 0);
 	pMemoize.clear(memoized);
