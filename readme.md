@@ -51,9 +51,11 @@ Type: `Object`
 
 See the [`mem` options](https://github.com/sindresorhus/mem#options).
 
-### pMemoize.clear(fn)
+### pMemoize.clear(memoized)
 
 Clear all cached data of a memoized function.
+
+Will throw if passed a non-memoized function.
 
 
 ## Related
