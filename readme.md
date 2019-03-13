@@ -17,6 +17,7 @@ $ npm install p-memoize
 ```js
 const pMemoize = require('p-memoize');
 const got = require('got');
+
 const memGot = pMemoize(got, {maxAge: 1000});
 
 (async () => {
@@ -35,11 +36,11 @@ const memGot = pMemoize(got, {maxAge: 1000});
 
 ## API
 
-### pMemoize(input, [options])
+### pMemoize(fn, [options])
 
-Returns a memoized version of the `input` function.
+Returns a memoized version of the `fn` function.
 
-#### input
+#### fn
 
 Type: `Function`
 

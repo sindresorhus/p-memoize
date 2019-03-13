@@ -1,5 +1,4 @@
 'use strict';
-
 const mem = require('mem');
 const mimicFn = require('mimic-fn');
 

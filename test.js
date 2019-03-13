@@ -49,5 +49,7 @@ test('pMemoize.clear()', t => {
 });
 
 test('pMemoize.clear() throws when called with a plain function', t => {
-	t.throws(() => pMemoize.clear(() => {}), 'Can\'t clear a function that was not memoized!');
+	t.throws(() => {
+		pMemoize.clear(() => {});
+	}, 'Can\'t clear a function that was not memoized!');
 });
