@@ -1,5 +1,5 @@
-import {expectType} from 'tsd-check';
-import pMemoize from '.';
+import {expectType} from 'tsd';
+import pMemoize = require('.');
 
 expectType<(name: string) => Promise<string>>(
 	pMemoize(async (name: string) => `Hello ${name}!`)
