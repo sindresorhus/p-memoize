@@ -40,7 +40,7 @@
 		"bluebird"
 	],
 	"dependencies": {
-		"mem": "^4.3.0",
+		"mem": "github:sindresorhus/mem#throw-on-wrong-clear",
 		"mimic-fn": "^2.1.0"
 	},
 	"devDependencies": {

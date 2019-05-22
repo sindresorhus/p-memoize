@@ -20,6 +20,8 @@ test('does not memoize rejected promise', async t => {
 		}
 
 		return i;
+	}, {
+		cachePromiseRejection: false
 	});
 
 	t.is(await memoized(), 1);
