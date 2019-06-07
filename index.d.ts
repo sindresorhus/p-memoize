@@ -3,8 +3,8 @@ import {Options as MemOptions} from 'mem';
 declare namespace pMemoize {
 	type Options<
 		ArgumentsType extends unknown[],
-		CacheKeyType extends unknown,
-		ReturnType extends unknown
+		CacheKeyType,
+		ReturnType
 	> = MemOptions<ArgumentsType, CacheKeyType, ReturnType>;
 }
 declare const pMemoize: {
@@ -35,7 +35,7 @@ declare const pMemoize: {
 	})();
 	```
 	*/
-	<ArgumentsType extends unknown[], ReturnType, CacheKeyType = unknown>(
+	<ArgumentsType extends unknown[], ReturnType, CacheKeyType>(
 		fn: (...arguments: ArgumentsType) => PromiseLike<ReturnType>,
 		memoizeOptions?: pMemoize.Options<ArgumentsType, CacheKeyType, ReturnType>
 	): (...arguments: ArgumentsType) => Promise<ReturnType>;
