@@ -10,7 +10,7 @@
 		"url": "sindresorhus.com"
 	},
 	"engines": {
-		"node": ">=6"
+		"node": ">=8"
 	},
 	"scripts": {
 		"test": "xo && ava && tsd"
@@ -40,12 +40,14 @@
 		"bluebird"
 	],
 	"dependencies": {
-		"mem": "^4.3.0",
+		"map-age-cleaner": "^0.1.3",
 		"mimic-fn": "^2.1.0"
 	},
 	"devDependencies": {
 		"ava": "^1.4.1",
-		"tsd": "^0.7.2",
+		"delay": "^4.1.0",
+		"serialize-javascript": "^1.7.0",
+		"tsd": "^0.7.3",
 		"xo": "^0.24.0"
 	}
 }

@@ -1,30 +1,55 @@
 'use strict';
-const mem = require('mem');
 const mimicFn = require('mimic-fn');
+const mapAgeCleaner = require('map-age-cleaner');
 
-const memoizedFunctions = new WeakMap();
+const cacheStore = new WeakMap();
 
-const pMemoize = (fn, options) => {
-	const memoized = mem(fn, options);
+const mem = (fn, {
+	cacheKey = ([firstArgument]) => firstArgument,
+	cache = new Map(),
+	maxAge
+} = {}) => {
+	if (typeof maxAge === 'number') {
+		mapAgeCleaner(cache);
+	}
 
-	const memoizedAdapter = function (...arguments_) {
-		return memoized.apply(this, arguments_);
+	const memoized = function (...arguments_) {
+		const key = cacheKey(arguments_);
+
+		if (cache.has(key)) {
+			return cache.get(key).data;
+		}
+
+		const cacheItem = fn.apply(this, arguments_);
+
+		cache.set(key, {
+			data: cacheItem,
+			maxAge: maxAge ? Date.now() + maxAge : Infinity
+		});
+
+		return cacheItem;
 	};
 
-	mimicFn(memoizedAdapter, fn);
-	memoizedFunctions.set(memoizedAdapter, memoized);
+	try {
+		// The below call will throw in some host environments
+		// See https://github.com/sindresorhus/mimic-fn/issues/10
+		mimicFn(memoized, fn);
+	} catch (_) {}
 
-	return memoizedAdapter;
+	cacheStore.set(memoized, cache);
+
+	return memoized;
 };
 
-module.exports = pMemoize;
-// TODO: Remove this for the next major release
-module.exports.default = pMemoize;
+module.exports = mem;
 
-module.exports.clear = memoized => {
-	if (!memoizedFunctions.has(memoized)) {
+module.exports.clear = fn => {
+	if (!cacheStore.has(fn)) {
 		throw new Error('Can\'t clear a function that was not memoized!');
 	}
 
-	mem.clear(memoizedFunctions.get(memoized));
+	const cache = cacheStore.get(fn);
+	if (typeof cache.clear === 'function') {
+		cache.clear();
+	}
 };

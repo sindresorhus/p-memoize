@@ -1,12 +1,29 @@
 import {expectType} from 'tsd';
-import pMemoize = require('.');
+import mem = require('.');
 
-expectType<(name: string) => Promise<string>>(
-	pMemoize(async (name: string) => `Hello ${name}!`)
+const fn = (string: string) => true;
+
+expectType<(string: string) => boolean>(mem(fn));
+expectType<(string: string) => boolean>(mem(fn, {maxAge: 1}));
+expectType<(string: string) => boolean>(mem(fn, {cacheKey: (...arguments_) => arguments_}));
+expectType<(string: string) => boolean>(
+	mem(
+		fn,
+		{cacheKey: (arguments_) => arguments_,
+		cache: new Map<[string], {data: boolean; maxAge: number}>()})
 );
-expectType<() => Promise<number>>(pMemoize(async () => 1));
+expectType<(string: string) => boolean>(
+	mem(fn, {cache: new Map<[string], {data: boolean; maxAge: number}>()})
+);
 
-pMemoize(async () => 1, {maxAge: 1});
+/* Overloaded function tests */
+function overloadedFn(parameter: false): false;
+function overloadedFn(parameter: true): true;
+function overloadedFn(parameter: boolean): boolean {
+	return parameter;
+}
+expectType<typeof overloadedFn>(mem(overloadedFn));
+expectType<true>(mem(overloadedFn)(true));
+expectType<false>(mem(overloadedFn)(false));
 
-const memoized = pMemoize(async () => 1);
-pMemoize.clear(memoized);
+mem.clear(fn);
