@@ -117,7 +117,6 @@ test('maxAge option deletes old items', async t => {
 test('maxAge items are deleted even if function throws', async t => {
 	let i = 0;
 	const fixture = async () => {
-		console.log(22222)
 		if (i === 1) {
 			throw new Error('failure');
 		}
