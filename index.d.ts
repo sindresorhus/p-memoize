@@ -1,10 +1,11 @@
-declare namespace mem {
+type MaybePromise<T> = Promise<T> | T;
+declare namespace pMemoize {
 	interface CacheStorage<KeyType, ValueType> {
-		has(key: KeyType): boolean;
-		get(key: KeyType): ValueType | undefined;
-		set(key: KeyType, value: ValueType): void;
-		delete(key: KeyType): void;
-		clear?: () => void;
+		has(key: KeyType): MaybePromise<boolean>;
+		get(key: KeyType): MaybePromise<ValueType | undefined>;
+		set(key: KeyType, value: ValueType): MaybePromise<void>;
+		delete(key: KeyType): MaybePromise<void>;
+		clear?: () => MaybePromise<void>;
 	}
 
 	interface Options<
@@ -56,7 +57,7 @@ declare namespace mem {
 	}
 }
 
-declare const mem: {
+declare const pMemoize: {
 	/**
 	[Memoize](https://en.wikipedia.org/wiki/Memoization) functions - An optimization used to speed up consecutive function calls by caching the result of calls with identical input.
 
@@ -92,7 +93,7 @@ declare const mem: {
 		FunctionToMemoize = (...arguments: ArgumentsType) => ReturnType
 	>(
 		fn: FunctionToMemoize,
-		options?: mem.Options<ArgumentsType, CacheKeyType, ReturnType>
+		options?: pMemoize.Options<ArgumentsType, CacheKeyType, ReturnType>
 	): FunctionToMemoize;
 
 	/**
@@ -102,7 +103,7 @@ declare const mem: {
 	*/
 	clear<ArgumentsType extends unknown[], ReturnType>(
 		fn: (...arguments: ArgumentsType) => ReturnType
-	): void;
+	): Promise<void>;
 };
 
-export = mem;
+export = pMemoize;

@@ -4,7 +4,7 @@ const mapAgeCleaner = require('map-age-cleaner');
 
 const cacheStore = new WeakMap();
 
-const mem = (fn, {
+const pMemoize = (fn, {
 	cacheKey = ([firstArgument]) => firstArgument,
 	cache = new Map(),
 	maxAge
@@ -13,16 +13,16 @@ const mem = (fn, {
 		mapAgeCleaner(cache);
 	}
 
-	const memoized = function (...arguments_) {
+	const memoized = async function (...arguments_) {
 		const key = cacheKey(arguments_);
 
-		if (cache.has(key)) {
-			return cache.get(key).data;
+		if (await cache.has(key)) {
+			return (await cache.get(key)).data;
 		}
 
 		const cacheItem = fn.apply(this, arguments_);
 
-		cache.set(key, {
+		await cache.set(key, {
 			data: cacheItem,
 			maxAge: maxAge ? Date.now() + maxAge : Infinity
 		});
@@ -41,15 +41,15 @@ const mem = (fn, {
 	return memoized;
 };
 
-module.exports = mem;
+module.exports = pMemoize;
 
-module.exports.clear = fn => {
+module.exports.clear = async fn => {
 	if (!cacheStore.has(fn)) {
 		throw new Error('Can\'t clear a function that was not memoized!');
 	}
 
 	const cache = cacheStore.get(fn);
 	if (typeof cache.clear === 'function') {
-		cache.clear();
+		await cache.clear();
 	}
 };

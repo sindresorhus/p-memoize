@@ -1,29 +1,31 @@
 import {expectType} from 'tsd';
-import mem = require('.');
+import pMemoize = require('.');
 
-const fn = (string: string) => true;
+const fn = async (string: string) => true;
 
-expectType<(string: string) => boolean>(mem(fn));
-expectType<(string: string) => boolean>(mem(fn, {maxAge: 1}));
-expectType<(string: string) => boolean>(mem(fn, {cacheKey: (...arguments_) => arguments_}));
-expectType<(string: string) => boolean>(
-	mem(
+expectType<typeof fn>(pMemoize(fn));
+expectType<typeof fn>(pMemoize(fn, {maxAge: 1}));
+expectType<typeof fn>(pMemoize(fn, {cacheKey: (...arguments_) => arguments_}));
+expectType<typeof fn>(
+	pMemoize(
 		fn,
 		{cacheKey: (arguments_) => arguments_,
 		cache: new Map<[string], {data: boolean; maxAge: number}>()})
 );
-expectType<(string: string) => boolean>(
-	mem(fn, {cache: new Map<[string], {data: boolean; maxAge: number}>()})
+expectType<typeof fn>(
+	pMemoize(fn, {cache: new Map<[string], {data: boolean; maxAge: number}>()})
 );
 
 /* Overloaded function tests */
-function overloadedFn(parameter: false): false;
-function overloadedFn(parameter: true): true;
-function overloadedFn(parameter: boolean): boolean {
+async function overloadedFn(parameter: false): Promise<false>;
+async function overloadedFn(parameter: true): Promise<true>;
+async function overloadedFn(parameter: boolean): Promise<boolean> {
 	return parameter;
 }
-expectType<typeof overloadedFn>(mem(overloadedFn));
-expectType<true>(mem(overloadedFn)(true));
-expectType<false>(mem(overloadedFn)(false));
+expectType<typeof overloadedFn>(pMemoize(overloadedFn));
+(async () => {
+	expectType<true>(await pMemoize(overloadedFn)(true));
+	expectType<false>(await pMemoize(overloadedFn)(false));
+})();
 
-mem.clear(fn);
+pMemoize.clear(fn);
