@@ -20,7 +20,7 @@ const pMemoize = (fn, {
 			return (await cache.get(key)).data;
 		}
 
-		const cacheItem = fn.apply(this, arguments_);
+		const cacheItem = await fn.apply(this, arguments_);
 
 		await cache.set(key, {
 			data: cacheItem,
