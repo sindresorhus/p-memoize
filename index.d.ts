@@ -5,7 +5,14 @@ declare namespace pMemoize {
 		ArgumentsType extends unknown[],
 		CacheKeyType,
 		ReturnType
-	> = MemOptions<ArgumentsType, CacheKeyType, ReturnType>;
+	> = MemOptions<ArgumentsType, CacheKeyType, ReturnType> & {
+		/**
+		Cache rejected promises.
+
+		@default false
+		*/
+		readonly cachePromiseRejection?: boolean;
+	};
 }
 declare const pMemoize: {
 	/**

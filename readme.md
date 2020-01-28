@@ -52,6 +52,8 @@ Type: `Object`
 
 See the [`mem` options](https://github.com/sindresorhus/mem#options).
 
+Also supports `cachePromiseRejection` which was removed in mem@6.0.0. Default is `false`.
+
 ### pMemoize.clear(memoized)
 
 Clear all cached data of a memoized function.

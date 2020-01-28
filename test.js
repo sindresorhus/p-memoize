@@ -33,6 +33,30 @@ test('does not memoize rejected promise', async t => {
 	t.is(await memoized(100), 4);
 });
 
+test('can memoize rejected promise', async t => {
+	let i = 0;
+
+	const memoized = pMemoize(async () => {
+		i++;
+
+		if (i === 2) {
+			throw new Error('fixture');
+		}
+
+		return i;
+	}, {
+		cachePromiseRejection: true
+	});
+
+	t.is(await memoized(), 1);
+	t.is(await memoized(), 1);
+
+	await t.throwsAsync(memoized(10), 'fixture');
+	await t.throwsAsync(memoized(10), 'fixture');
+
+	t.is(await memoized(100), 3);
+});
+
 test('preserves the original function name', t => {
 	t.is(pMemoize(async function foo() {}).name, 'foo'); // eslint-disable-line func-names
 });
