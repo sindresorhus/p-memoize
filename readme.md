@@ -49,7 +49,12 @@ Type: `object`
 
 See the [`mem` options](https://github.com/sindresorhus/mem#options).
 
-Also supports `cachePromiseRejection` which was removed in mem@6.0.0. Default is `false`.
+##### cachePromiseRejection
+
+Type: `boolean`
+Default: `false`
+
+Set to `true` to keep rejected promises in the cache.
 
 ### pMemoize.clear(memoized)
 
