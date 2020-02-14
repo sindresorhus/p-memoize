@@ -17,7 +17,9 @@ const pMemoize = (fn, options = {}) => {
 		const cacheItem = memoized.apply(this, arguments_);
 
 		if (options.cachePromiseRejection !== true && cacheItem && cacheItem.catch) {
-			cacheItem.catch(() => cache.delete(cacheKey(arguments_)));
+			cacheItem.catch(() => {
+				cache.delete(cacheKey(arguments_));
+			});
 		}
 
 		return cacheItem;
