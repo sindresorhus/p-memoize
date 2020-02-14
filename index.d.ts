@@ -53,9 +53,6 @@ declare const pMemoize: {
 	@param memoized - A function that was previously memoized. Will throw if passed a non-memoized function.
 	*/
 	clear(memoized: (...arguments: unknown[]) => unknown): void;
-
-	// TODO: Remove this for the next major release
-	default: typeof pMemoize;
 };
 
 export = pMemoize;

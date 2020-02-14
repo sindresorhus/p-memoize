@@ -4,13 +4,11 @@
 
 Useful for speeding up consecutive function calls by caching the result of calls with identical input.
 
-
 ## Install
 
 ```
 $ npm install p-memoize
 ```
-
 
 ## Usage
 
@@ -33,10 +31,9 @@ const memGot = pMemoize(got, {maxAge: 1000});
 })();
 ```
 
-
 ## API
 
-### pMemoize(fn, [options])
+### pMemoize(fn, options?)
 
 Returns a memoized version of the `fn` function.
 
@@ -48,7 +45,7 @@ Promise-returning or async function to be memoized.
 
 #### options
 
-Type: `Object`
+Type: `object`
 
 See the [`mem` options](https://github.com/sindresorhus/mem#options).
 
@@ -60,14 +57,8 @@ Clear all cached data of a memoized function.
 
 Will throw if passed a non-memoized function.
 
-
 ## Related
 
 - [p-debounce](https://github.com/sindresorhus/p-debounce) - Debounce promise-returning & async functions
 - [p-throttle](https://github.com/sindresorhus/p-throttle) - Throttle promise-returning & async functions
 - [More…](https://github.com/sindresorhus/promise-fun)
-
-
-## License
-
-MIT © [Sindre Sorhus](https://sindresorhus.com)

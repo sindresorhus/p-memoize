@@ -4,13 +4,14 @@
 	"description": "Memoize promise-returning & async functions",
 	"license": "MIT",
 	"repository": "sindresorhus/p-memoize",
+	"funding": "https://github.com/sindresorhus/p-memoize?sponsor=1",
 	"author": {
 		"name": "Sindre Sorhus",
 		"email": "sindresorhus@gmail.com",
-		"url": "sindresorhus.com"
+		"url": "https://sindresorhus.com"
 	},
 	"engines": {
-		"node": ">=6"
+		"node": ">=10"
 	},
 	"scripts": {
 		"test": "xo && ava && tsd"
@@ -41,11 +42,11 @@
 	],
 	"dependencies": {
 		"mem": "^6.0.1",
-		"mimic-fn": "^2.1.0"
+		"mimic-fn": "^3.0.0"
 	},
 	"devDependencies": {
 		"ava": "^1.4.1",
-		"tsd": "^0.7.2",
-		"xo": "^0.24.0"
+		"tsd": "^0.11.0",
+		"xo": "^0.26.1"
 	}
 }

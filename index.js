@@ -32,8 +32,6 @@ const pMemoize = (fn, options = {}) => {
 };
 
 module.exports = pMemoize;
-// TODO: Remove this for the next major release
-module.exports.default = pMemoize;
 
 module.exports.clear = memoized => {
 	if (!memoizedFunctions.has(memoized)) {
