@@ -54,7 +54,7 @@ See the [`mem` options](https://github.com/sindresorhus/mem#options) in addition
 Type: `boolean`\
 Default: `false`
 
-Keep rejected promises in the cache.
+Cache rejected promises.
 
 ### pMemoize.clear(memoized)
 
