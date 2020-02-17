@@ -19,7 +19,7 @@ declare const pMemoize: {
 	[Memoize](https://en.wikipedia.org/wiki/Memoization) promise-returning & async functions.
 
 	@param fn - Promise-returning or async function to be memoized.
-	@param pMemoizeOptions - See the [`p-memoize` options](https://github.com/sindresorhus/p-memoize#options).
+	@param options - See the [`p-memoize` options](https://github.com/sindresorhus/p-memoize#options).
 	@returns A memoized version of the `input` function.
 
 	@example
@@ -44,7 +44,7 @@ declare const pMemoize: {
 	*/
 	<ArgumentsType extends unknown[], ReturnType, CacheKeyType>(
 		fn: (...arguments: ArgumentsType) => PromiseLike<ReturnType>,
-		pMemoizeOptions?: pMemoize.Options<ArgumentsType, CacheKeyType, ReturnType>
+		options?: pMemoize.Options<ArgumentsType, CacheKeyType, ReturnType>
 	): (...arguments: ArgumentsType) => Promise<ReturnType>;
 
 	/**
