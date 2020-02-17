@@ -6,7 +6,7 @@ expectType<(name: string) => Promise<string>>(
 );
 expectType<() => Promise<number>>(pMemoize(async () => 1));
 
-pMemoize(async () => 1, {maxAge: 1});
+pMemoize(async () => 1, {maxAge: 1, cachePromiseRejection: true});
 
 const memoized = pMemoize(async () => 1);
 pMemoize.clear(memoized);

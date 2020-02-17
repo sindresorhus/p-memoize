@@ -4,11 +4,26 @@ const mimicFn = require('mimic-fn');
 
 const memoizedFunctions = new WeakMap();
 
-const pMemoize = (fn, options) => {
-	const memoized = mem(fn, options);
+const pMemoize = (fn, {cachePromiseRejection = false, ...options} = {}) => {
+	const cache = options.cache || new Map();
+	const cacheKey = options.cacheKey || (([firstArgument]) => firstArgument);
+
+	const memoized = mem(fn, {
+		...options,
+		cache,
+		cacheKey
+	});
 
 	const memoizedAdapter = function (...arguments_) {
-		return memoized.apply(this, arguments_);
+		const cacheItem = memoized.apply(this, arguments_);
+
+		if (!cachePromiseRejection && cacheItem && cacheItem.catch) {
+			cacheItem.catch(() => {
+				cache.delete(cacheKey(arguments_));
+			});
+		}
+
+		return cacheItem;
 	};
 
 	mimicFn(memoizedAdapter, fn);
