@@ -47,14 +47,14 @@ Promise-returning or async function to be memoized.
 
 Type: `object`
 
-See the [`mem` options](https://github.com/sindresorhus/mem#options).
+See the [`mem` options](https://github.com/sindresorhus/mem#options) in addition to the below option.
 
 ##### cachePromiseRejection
 
-Type: `boolean`
+Type: `boolean`\
 Default: `false`
 
-Set to `true` to keep rejected promises in the cache.
+Keep rejected promises in the cache.
 
 ### pMemoize.clear(memoized)
 
