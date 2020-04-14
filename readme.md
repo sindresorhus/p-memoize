@@ -19,14 +19,14 @@ const got = require('got');
 const memGot = pMemoize(got, {maxAge: 1000});
 
 (async () => {
-	memGot('sindresorhus.com');
+	memGot('https://sindresorhus.com');
 
 	// This call is cached
-	memGot('sindresorhus.com');
+	memGot('https://sindresorhus.com');
 
 	setTimeout(() => {
 		// This call is not cached as the cache has expired
-		memGot('sindresorhus.com');
+		memGot('https://sindresorhus.com');
 	}, 2000);
 })();
 ```
