@@ -4,6 +4,8 @@
 
 Useful for speeding up consecutive function calls by caching the result of calls with identical input.
 
+By default, **only the memoized function's first argument is considered** and it only works with [primitives](https://developer.mozilla.org/en-US/docs/Glossary/Primitive). If you need to cache multiple arguments or cache `object`s *by value*, have a look at [options](#options) below.
+
 ## Install
 
 ```
