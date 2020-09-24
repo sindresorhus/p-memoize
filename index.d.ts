@@ -42,7 +42,7 @@ declare const pMemoize: {
 	})();
 	```
 	*/
-	<ArgumentsType extends unknown[], ReturnType, CacheKeyType>(
+	<ArgumentsType extends any[], ReturnType, CacheKeyType>(
 		fn: (...arguments: ArgumentsType) => PromiseLike<ReturnType>,
 		options?: pMemoize.Options<ArgumentsType, CacheKeyType, ReturnType>
 	): (...arguments: ArgumentsType) => Promise<ReturnType>;
@@ -52,7 +52,7 @@ declare const pMemoize: {
 
 	@param memoized - A function that was previously memoized. Will throw if passed a non-memoized function.
 	*/
-	clear(memoized: (...arguments: unknown[]) => unknown): void;
+	clear(memoized: (...arguments: any[]) => unknown): void;
 };
 
 export = pMemoize;
