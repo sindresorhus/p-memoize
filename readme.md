@@ -1,4 +1,4 @@
-# p-memoize [![Build Status](https://travis-ci.org/sindresorhus/p-memoize.svg?branch=master)](https://travis-ci.org/sindresorhus/p-memoize)
+# p-memoize
 
 > [Memoize](https://en.wikipedia.org/wiki/Memoization) promise-returning & async functions
 
