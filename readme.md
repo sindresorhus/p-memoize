@@ -4,7 +4,9 @@
 
 Useful for speeding up consecutive function calls by caching the result of calls with identical input.
 
-By default, **only the memoized function's first argument is considered** via strict equality comparison. If you need to cache multiple arguments or cache `object`s *by value*, have a look at [options](#options) below.
+<!-- Please keep this section in sync with mem’s -->
+
+By default, **only the memoized function's first argument is considered** via strict equality comparison. If you need to cache multiple arguments or cache `object`s *by value*, have a look at alternative [caching strategies](#caching-strategy) below.
 
 ## Install
 
@@ -32,6 +34,10 @@ const memGot = pMemoize(got, {maxAge: 1000});
 	}, 2000);
 })();
 ```
+
+### Caching strategy
+
+See the [Caching strategy for `mem`](https://github.com/sindresorhus/mem#options).
 
 ## API
 
