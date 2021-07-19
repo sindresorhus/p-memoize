@@ -4,7 +4,7 @@
 
 Useful for speeding up consecutive function calls by caching the result of calls with identical input.
 
-<!-- Please keep this section in sync with mem’s -->
+<!-- Please keep this section in sync with https://github.com/sindresorhus/mem/blob/main/readme.md -->
 
 By default, **only the memoized function's first argument is considered** via strict equality comparison. If you need to cache multiple arguments or cache `object`s *by value*, have a look at alternative [caching strategies](#caching-strategy) below.
 
