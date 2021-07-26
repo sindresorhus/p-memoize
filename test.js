@@ -1,4 +1,5 @@
 import test from 'ava';
+import delay from 'delay';
 import pMemoize from '.';
 
 test('main', async t => {
@@ -61,19 +62,34 @@ test('preserves the original function name', t => {
 	t.is(pMemoize(async function foo() {}).name, 'foo'); // eslint-disable-line func-names
 });
 
-test('pMemoize.clear()', t => {
+test('pMemoize.clear()', async t => {
 	let i = 0;
 	const fixture = () => i++;
 	const memoized = pMemoize(fixture);
-	t.is(memoized(), 0);
-	t.is(memoized(), 0);
+	t.is(await memoized(), 0);
+	t.is(await memoized(), 0);
 	pMemoize.clear(memoized);
-	t.is(memoized(), 1);
-	t.is(memoized(), 1);
+	t.is(await memoized(), 1);
+	t.is(await memoized(), 1);
 });
 
 test('pMemoize.clear() throws when called with a plain function', t => {
 	t.throws(() => {
 		pMemoize.clear(() => {});
 	}, 'Can\'t clear a function that was not memoized!');
+});
+
+test('maxAge starts on promise settlement', async t => {
+	let i = 0;
+	const fixture = async () => {
+		await delay(4);
+		return i++;
+	};
+
+	const memoized = pMemoize(fixture, {maxAge: 4});
+	t.is(await memoized(), 0);
+	await delay(2);
+	t.is(await memoized(), 0);
+	await delay(2);
+	t.is(await memoized(), 1);
 });
