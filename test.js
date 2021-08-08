@@ -64,13 +64,21 @@ test('preserves the original function name', t => {
 
 test('pMemoize.clear()', async t => {
 	let i = 0;
-	const fixture = () => i++;
+	const fixture = async () => i++;
 	const memoized = pMemoize(fixture);
 	t.is(await memoized(), 0);
 	t.is(await memoized(), 0);
 	pMemoize.clear(memoized);
 	t.is(await memoized(), 1);
 	t.is(await memoized(), 1);
+});
+
+test('always returns async function', async t => {
+	let i = 0;
+	const fixture = () => i++;
+	const memoized = pMemoize(fixture);
+	t.is(await memoized(), 0);
+	t.is(await memoized(), 0);
 });
 
 test('pMemoize.clear() throws when called with a plain function', t => {
