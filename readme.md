@@ -6,7 +6,7 @@ Useful for speeding up consecutive function calls by caching the result of calls
 
 By default, **only the memoized function's first argument is considered** and it only works with [primitives](https://developer.mozilla.org/en-US/docs/Glossary/Primitive). If you need to cache multiple arguments or cache `object`s *by value*, have a look at [options](#options) below.
 
-This package is similar to [mem](https://github.com/sindresorhus/mem), but does not cache rejected promises by default (unless the [`cachePromiseRejection`](#cachePromiseRejection) option is set).
+This package is similar to [mem](https://github.com/sindresorhus/mem) but with enhancements specific to async operations; in particular, it does not cache rejected promises by default (unless the [`cachePromiseRejection`](#cachePromiseRejection) option is set).
 
 ## Install
 
