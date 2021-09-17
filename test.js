@@ -90,14 +90,14 @@ test('pMemoize.clear() throws when called with a plain function', t => {
 test('maxAge starts on promise settlement', async t => {
 	let i = 0;
 	const fixture = async () => {
-		await delay(4);
+		await delay(40);
 		return i++;
 	};
 
-	const memoized = pMemoize(fixture, {maxAge: 4});
+	const memoized = pMemoize(fixture, {maxAge: 40});
 	t.is(await memoized(), 0);
-	await delay(2);
+	await delay(20);
 	t.is(await memoized(), 0);
-	await delay(2);
+	await delay(20);
 	t.is(await memoized(), 1);
 });
