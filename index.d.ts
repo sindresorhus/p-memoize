@@ -1,11 +1,59 @@
-import {Options as MemOptions} from 'mem';
 
 declare namespace pMemoize {
+	interface CacheStorage<KeyType, ValueType> {
+		has(key: KeyType): boolean;
+		get(key: KeyType): ValueType | undefined;
+		set(key: KeyType, value: ValueType): void;
+		delete(key: KeyType): void;
+		clear?: () => void;
+	}
+
 	type Options<
 		ArgumentsType extends unknown[],
 		CacheKeyType,
 		ReturnType
-	> = MemOptions<ArgumentsType, CacheKeyType, ReturnType> & {
+	> = {
+		/**
+		Milliseconds until the cache expires.
+
+		@default Infinity
+		*/
+		readonly maxAge?: number;
+
+		/**
+		Determines the cache key for storing the result based on the function arguments. By default, __only the first argument is considered__ and it only works with [primitives](https://developer.mozilla.org/en-US/docs/Glossary/Primitive).
+
+		A `cacheKey` function can return any type supported by `Map` (or whatever structure you use in the `cache` option).
+
+		You can have it cache **all** the arguments by value with `JSON.stringify`, if they are compatible:
+
+		```
+		import pMemoize = require('p-memoize');
+
+		pMemoize(function_, {cacheKey: JSON.stringify});
+		```
+
+		Or you can use a more full-featured serializer like [serialize-javascript](https://github.com/yahoo/serialize-javascript) to add support for `RegExp`, `Date` and so on.
+
+		```
+		import pMemoize = require('p-memoize');
+		import serializeJavascript = require('serialize-javascript');
+
+		pMemoize(function_, {cacheKey: serializeJavascript});
+		```
+
+		@default arguments_ => arguments_[0]
+		@example arguments_ => JSON.stringify(arguments_)
+		*/
+		readonly cacheKey?: (arguments: ArgumentsType) => CacheKeyType;
+
+		/**
+		Use a different cache storage. Must implement the following methods: `.has(key)`, `.get(key)`, `.set(key, value)`, `.delete(key)`, and optionally `.clear()`. You could for example use a `WeakMap` instead or [`quick-lru`](https://github.com/sindresorhus/quick-lru) for a LRU cache.
+
+		@default new Map()
+		@example new WeakMap()
+		*/
+		readonly cache?: CacheStorage<CacheKeyType, {data: ReturnType; maxAge: number}>;
 		/**
 		Cache rejected promises.
 

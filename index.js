@@ -1,43 +1,65 @@
 'use strict';
-const mem = require('mem');
 const mimicFn = require('mimic-fn');
+const mapAgeCleaner = require('map-age-cleaner');
 
-const memoizedFunctions = new WeakMap();
+const cacheStore = new WeakMap();
 
 const pMemoize = (fn, {cachePromiseRejection = false, ...options} = {}) => {
+	const {maxAge, cacheKey} = options;
 	const cache = options.cache || new Map();
-	const cacheKey = options.cacheKey || (([firstArgument]) => firstArgument);
 
-	const memoized = mem(fn, {
-		...options,
-		cache,
-		cacheKey
-	});
+	if (Number.isSafeInteger(maxAge)) {
+		mapAgeCleaner(cache);
+	} else if (typeof maxAge !== 'undefined') {
+		throw new TypeError('maxAge is not a safe integer.');
+	}
 
-	const memoizedAdapter = function (...arguments_) {
-		const cacheItem = memoized.apply(this, arguments_);
+	const memoized = async function (...arguments_) {
+		const key = cacheKey ? cacheKey(arguments_) : arguments_[0];
 
-		if (!cachePromiseRejection && cacheItem && cacheItem.catch) {
-			cacheItem.catch(() => {
-				cache.delete(cacheKey(arguments_));
-			});
+		const cacheItem = cache.get(key);
+		if (cacheItem) {
+			return cacheItem.data;
 		}
 
-		return cacheItem;
+		const result = fn.apply(this, arguments_);
+
+		let resultError;
+		try {
+			return await Promise.resolve(result);
+		} catch (error) {
+			resultError = error;
+			throw error;
+		} finally {
+			cache.set(key, {
+				data: result,
+				maxAge: maxAge ? Date.now() + maxAge : Number.POSITIVE_INFINITY
+			});
+
+			if (!cachePromiseRejection && resultError) {
+				cache.delete(key);
+			}
+		}
 	};
 
-	mimicFn(memoizedAdapter, fn);
-	memoizedFunctions.set(memoizedAdapter, memoized);
+	mimicFn(memoized, fn);
+	cacheStore.set(memoized, cache);
 
-	return memoizedAdapter;
+	return memoized;
 };
 
 module.exports = pMemoize;
 
 module.exports.clear = memoized => {
-	if (!memoizedFunctions.has(memoized)) {
+	if (!cacheStore.has(memoized)) {
 		throw new Error('Can\'t clear a function that was not memoized!');
 	}
 
-	mem.clear(memoizedFunctions.get(memoized));
+	const cache = cacheStore.get(memoized);
+
+	if (typeof cache.clear !== 'function') {
+		throw new TypeError('The cache Map can\'t be cleared!');
+	}
+
+	cache.clear();
 };
