@@ -28,23 +28,18 @@ const pMemoize = (fn, {cachePromiseRejection = false, ...options} = {}) => {
 			maxAge: Number.POSITIVE_INFINITY
 		});
 
-		let promiseError;
-		try {
-			return await promise;
-		} catch (error) {
-			promiseError = error;
-			throw error;
-		} finally {
-			if (!cachePromiseRejection && promiseError) {
-				cache.delete(key);
-			} else if (maxAge) {
-				// Promise fulfilled, so start the timer
-				cache.set(key, {
-					data: promise,
-					maxAge: Date.now() + maxAge
-				});
-			}
+		const [{reason}] = await Promise.allSettled([promise]);
+		if (!cachePromiseRejection && reason) {
+			cache.delete(key);
+		} else if (maxAge) {
+			// Promise fulfilled, so start the timer
+			cache.set(key, {
+				data: promise,
+				maxAge: Date.now() + maxAge
+			});
 		}
+
+		return promise;
 	};
 
 	mimicFn(memoized, fn);
