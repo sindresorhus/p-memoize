@@ -35,13 +35,13 @@ const pMemoize = (fn, {cachePromiseRejection = false, ...options} = {}) => {
 			resultError = error;
 			throw error;
 		} finally {
-			cache.set(key, {
-				data: result,
-				maxAge: maxAge ? Date.now() + maxAge : Number.POSITIVE_INFINITY
-			});
-
 			if (!cachePromiseRejection && resultError) {
 				cache.delete(key);
+			} else {
+				cache.set(key, {
+					data: result,
+					maxAge: maxAge ? Date.now() + maxAge : Number.POSITIVE_INFINITY
+				});
 			}
 		}
 	};
