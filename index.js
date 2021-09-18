@@ -22,24 +22,24 @@ const pMemoize = (fn, {cachePromiseRejection = false, ...options} = {}) => {
 			return cacheItem.data;
 		}
 
-		const result = fn.apply(this, arguments_);
+		const promise = fn.apply(this, arguments_);
 		cache.set(key, {
-			data: result,
+			data: promise,
 			maxAge: Number.POSITIVE_INFINITY
 		});
 
-		let resultError;
+		let promiseError;
 		try {
-			return await result;
+			return await promise;
 		} catch (error) {
-			resultError = error;
+			promiseError = error;
 			throw error;
 		} finally {
-			if (!cachePromiseRejection && resultError) {
+			if (!cachePromiseRejection && promiseError) {
 				cache.delete(key);
 			} else {
 				cache.set(key, {
-					data: result,
+					data: promise,
 					maxAge: maxAge ? Date.now() + maxAge : Number.POSITIVE_INFINITY
 				});
 			}
