@@ -23,6 +23,10 @@ const pMemoize = (fn, {cachePromiseRejection = false, ...options} = {}) => {
 		}
 
 		const result = fn.apply(this, arguments_);
+		cache.set(key, {
+			data: result,
+			maxAge: Number.POSITIVE_INFINITY
+		});
 
 		let resultError;
 		try {
