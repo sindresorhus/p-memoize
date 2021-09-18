@@ -37,10 +37,11 @@ const pMemoize = (fn, {cachePromiseRejection = false, ...options} = {}) => {
 		} finally {
 			if (!cachePromiseRejection && promiseError) {
 				cache.delete(key);
-			} else {
+			} else if (maxAge) {
+				// Promise fulfilled, so start the timer
 				cache.set(key, {
 					data: promise,
-					maxAge: maxAge ? Date.now() + maxAge : Number.POSITIVE_INFINITY
+					maxAge: Date.now() + maxAge
 				});
 			}
 		}
