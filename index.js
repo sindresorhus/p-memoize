@@ -30,7 +30,7 @@ const pMemoize = (fn, {cachePromiseRejection = false, ...options} = {}) => {
 
 		let resultError;
 		try {
-			return await Promise.resolve(result);
+			return await result;
 		} catch (error) {
 			resultError = error;
 			throw error;
