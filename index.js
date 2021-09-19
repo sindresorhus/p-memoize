@@ -22,24 +22,24 @@ const pMemoize = (fn, {cachePromiseRejection = false, ...options} = {}) => {
 			return cacheItem.data;
 		}
 
-		const result = fn.apply(this, arguments_);
+		const promise = fn.apply(this, arguments_);
+		cache.set(key, {
+			data: promise,
+			maxAge: Number.POSITIVE_INFINITY
+		});
 
-		let resultError;
-		try {
-			return await Promise.resolve(result);
-		} catch (error) {
-			resultError = error;
-			throw error;
-		} finally {
+		const [{reason}] = await Promise.allSettled([promise]);
+		if (!cachePromiseRejection && reason) {
+			cache.delete(key);
+		} else if (maxAge) {
+			// Promise fulfilled, so start the timer
 			cache.set(key, {
-				data: result,
-				maxAge: maxAge ? Date.now() + maxAge : Number.POSITIVE_INFINITY
+				data: promise,
+				maxAge: Date.now() + maxAge
 			});
-
-			if (!cachePromiseRejection && resultError) {
-				cache.delete(key);
-			}
 		}
+
+		return promise;
 	};
 
 	mimicFn(memoized, fn);
