@@ -1,13 +1,14 @@
-'use strict';
-const mimicFn = require('mimic-fn');
-const mapAgeCleaner = require('map-age-cleaner');
+import mimicFunction from 'mimic-fn';
+import mapAgeCleaner from 'map-age-cleaner';
 
 const cacheStore = new WeakMap();
 
-const pMemoize = (fn, {cachePromiseRejection = false, ...options} = {}) => {
-	const {maxAge, cacheKey} = options;
-	const cache = options.cache || new Map();
-
+export default function pMemoize(fn, {
+	cachePromiseRejection = false,
+	maxAge,
+	cacheKey,
+	cache = new Map(),
+} = {}) {
 	if (Number.isSafeInteger(maxAge)) {
 		mapAgeCleaner(cache);
 	} else if (typeof maxAge !== 'undefined') {
@@ -25,7 +26,8 @@ const pMemoize = (fn, {cachePromiseRejection = false, ...options} = {}) => {
 		const promise = fn.apply(this, arguments_);
 		cache.set(key, {
 			data: promise,
-			maxAge: Number.POSITIVE_INFINITY
+			// We cannot use `Infinity` because of https://github.com/SamVerschueren/map-age-cleaner/issues/8
+			maxAge: 2_147_483_647, // This is the largest number `setTimeout` can handle.
 		});
 
 		const [{reason}] = await Promise.allSettled([promise]);
@@ -35,24 +37,22 @@ const pMemoize = (fn, {cachePromiseRejection = false, ...options} = {}) => {
 			// Promise fulfilled, so start the timer
 			cache.set(key, {
 				data: promise,
-				maxAge: Date.now() + maxAge
+				maxAge: Date.now() + maxAge,
 			});
 		}
 
 		return promise;
 	};
 
-	mimicFn(memoized, fn);
+	mimicFunction(memoized, fn);
 	cacheStore.set(memoized, cache);
 
 	return memoized;
-};
+}
 
-module.exports = pMemoize;
-
-module.exports.clear = memoized => {
+export function pMemoizeClear(memoized) {
 	if (!cacheStore.has(memoized)) {
-		throw new Error('Can\'t clear a function that was not memoized!');
+		throw new Error('Cannot clear a function that was not memoized!');
 	}
 
 	const cache = cacheStore.get(memoized);
@@ -62,4 +62,4 @@ module.exports.clear = memoized => {
 	}
 
 	cache.clear();
-};
+}

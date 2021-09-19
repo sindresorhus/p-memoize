@@ -1,18 +1,18 @@
 import test from 'ava';
 import delay from 'delay';
-import pMemoize from '.';
+import pMemoize, {pMemoizeClear} from './index.js';
 
 test('main', async t => {
-	let i = 0;
-	const memoized = pMemoize(async () => i++);
+	let index = 0;
+	const memoized = pMemoize(async () => index++);
 	t.is(await memoized(), 0);
 	t.is(await memoized(), 0);
 	t.is(await memoized(10), 1);
 });
 
 test('does memoize consecutive calls', async t => {
-	let i = 0;
-	const memoized = pMemoize(async () => i++);
+	let index = 0;
+	const memoized = pMemoize(async () => index++);
 	const firstCall = memoized();
 	const secondCall = memoized();
 
@@ -23,22 +23,22 @@ test('does memoize consecutive calls', async t => {
 });
 
 test('does not memoize rejected promise', async t => {
-	let i = 0;
+	let index = 0;
 
 	const memoized = pMemoize(async () => {
-		i++;
+		index++;
 
-		if (i === 2) {
+		if (index === 2) {
 			throw new Error('fixture');
 		}
 
-		return i;
+		return index;
 	});
 
 	t.is(await memoized(), 1);
 	t.is(await memoized(), 1);
 
-	await t.throwsAsync(memoized(10), 'fixture');
+	await t.throwsAsync(memoized(10), {message: 'fixture'});
 	await t.notThrowsAsync(memoized(10));
 
 	t.is(await memoized(10), 3);
@@ -47,25 +47,25 @@ test('does not memoize rejected promise', async t => {
 });
 
 test('can memoize rejected promise', async t => {
-	let i = 0;
+	let index = 0;
 
 	const memoized = pMemoize(async () => {
-		i++;
+		index++;
 
-		if (i === 2) {
+		if (index === 2) {
 			throw new Error('fixture');
 		}
 
-		return i;
+		return index;
 	}, {
-		cachePromiseRejection: true
+		cachePromiseRejection: true,
 	});
 
 	t.is(await memoized(), 1);
 	t.is(await memoized(), 1);
 
-	await t.throwsAsync(memoized(10), 'fixture');
-	await t.throwsAsync(memoized(10), 'fixture');
+	await t.throwsAsync(memoized(10), {message: 'fixture'});
+	await t.throwsAsync(memoized(10), {message: 'fixture'});
 
 	t.is(await memoized(100), 3);
 });
@@ -74,36 +74,38 @@ test('preserves the original function name', t => {
 	t.is(pMemoize(async function foo() {}).name, 'foo'); // eslint-disable-line func-names
 });
 
-test('pMemoize.clear()', async t => {
-	let i = 0;
-	const fixture = async () => i++;
+test('pMemoizeClear()', async t => {
+	let index = 0;
+	const fixture = async () => index++;
 	const memoized = pMemoize(fixture);
 	t.is(await memoized(), 0);
 	t.is(await memoized(), 0);
-	pMemoize.clear(memoized);
+	pMemoizeClear(memoized);
 	t.is(await memoized(), 1);
 	t.is(await memoized(), 1);
 });
 
 test('always returns async function', async t => {
-	let i = 0;
-	const fixture = () => i++;
+	let index = 0;
+	const fixture = () => index++;
 	const memoized = pMemoize(fixture);
 	t.is(await memoized(), 0);
 	t.is(await memoized(), 0);
 });
 
-test('pMemoize.clear() throws when called with a plain function', t => {
+test('pMemoizeClear() throws when called with a plain function', t => {
 	t.throws(() => {
-		pMemoize.clear(() => {});
-	}, 'Can\'t clear a function that was not memoized!');
+		pMemoizeClear(() => {});
+	}, {
+		message: 'Cannot clear a function that was not memoized!',
+	});
 });
 
 test('maxAge starts on promise settlement', async t => {
-	let i = 0;
+	let index = 0;
 	const fixture = async () => {
 		await delay(40);
-		return i++;
+		return index++;
 	};
 
 	const memoized = pMemoize(fixture, {maxAge: 40});
