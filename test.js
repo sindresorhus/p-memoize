@@ -10,6 +10,18 @@ test('main', async t => {
 	t.is(await memoized(10), 1);
 });
 
+test('does memoize consecutive calls', async t => {
+	let i = 0;
+	const memoized = pMemoize(async () => i++);
+	const firstCall = memoized();
+	const secondCall = memoized();
+
+	await Promise.all([firstCall, secondCall]);
+
+	t.is(await firstCall, 0);
+	t.is(await secondCall, 0);
+});
+
 test('does not memoize rejected promise', async t => {
 	let i = 0;
 
