@@ -115,7 +115,7 @@ export default function pMemoize<
 		}
 
 		if (await cache.has(key)) {
-			return cache.get(key) as Promise<AsyncReturnType<FunctionToMemoize>>;
+			return (await cache.get(key))!; // eslint-disable-line @typescript-eslint/no-unsafe-return
 		}
 
 		const promise = fn.apply(this, arguments_);
@@ -123,7 +123,7 @@ export default function pMemoize<
 		promiseCache.set(key, promise);
 
 		try {
-			const result = await promise as AsyncReturnType<FunctionToMemoize>;
+			const result = await promise; // eslint-disable-line @typescript-eslint/no-unsafe-assignment
 
 			cache.set(key, result);
 
