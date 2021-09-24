@@ -76,7 +76,7 @@ interface Options<
 @example
 ```
 import pMemoize from 'p-memoize';
-import {setTimeout as delay} from 'timer/promises'
+import {setTimeout as delay} from 'timer/promises';
 import got from 'got';
 
 const memoizedGot = pMemoize(got, {maxAge: 1000});
