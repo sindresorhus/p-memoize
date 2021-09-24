@@ -104,20 +104,21 @@ export default function pMemoize<
 	}: Options<FunctionToMemoize, CacheKeyType> = {},
 ): FunctionToMemoize {
 	// Promise objects can't be serialized so we keep track of them internally and only provide their resolved values to `cache`
-	const promiseCache = new Map<CacheKeyType, ReturnType<FunctionToMemoize>>();
+	// `Promise<AsyncReturnType<FunctionToMemoize>>` is used instead of `ReturnType<FunctionToMemoize>` because promise properties are not kept
+	const promiseCache = new Map<CacheKeyType, Promise<AsyncReturnType<FunctionToMemoize>>>();
 
 	const memoized = async function (this: any, ...arguments_: Parameters<FunctionToMemoize>): Promise<AsyncReturnType<FunctionToMemoize>> {
 		const key = cacheKey ? cacheKey(arguments_) : arguments_[0] as CacheKeyType;
 
 		if (promiseCache.has(key)) {
-			return promiseCache.get(key)! as ReturnType<FunctionToMemoize>; // eslint-disable-line @typescript-eslint/no-unsafe-return
+			return promiseCache.get(key)!;
 		}
 
 		if (await cache.has(key)) {
 			return cache.get(key)! as ReturnType<FunctionToMemoize>; // eslint-disable-line @typescript-eslint/no-unsafe-return
 		}
 
-		const promise = fn.apply(this, arguments_) as ReturnType<FunctionToMemoize>;
+		const promise = fn.apply(this, arguments_);
 
 		promiseCache.set(key, promise);
 
