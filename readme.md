@@ -8,7 +8,7 @@ Useful for speeding up consecutive function calls by caching the result of calls
 
 By default, **only the memoized function's first argument is considered** via strict equality comparison. If you need to cache multiple arguments or cache `object`s *by value*, have a look at alternative [caching strategies](#caching-strategy) below.
 
-This package is similar to [mem](https://github.com/sindresorhus/mem) but with async-specific enhancements; in particular, it does not cache rejected promises by default (unless the [`cachePromiseRejection`](#cachePromiseRejection) option is set).
+This package is similar to [mem](https://github.com/sindresorhus/mem) but with async-specific enhancements; in particular, it allows for asynchronous caches and does not cache rejected promises by default (unless the [`cachePromiseRejection`](#cachePromiseRejection) option is set).
 
 ## Install
 
@@ -20,24 +20,29 @@ $ npm install p-memoize
 
 ```js
 import pMemoize from 'p-memoize';
+import {setTimeout as delay} from 'timer/promises'
 import got from 'got';
 
 const memoizedGot = pMemoize(got, {maxAge: 1000});
 
-memoizedGot('https://sindresorhus.com');
+await memoizedGot('https://sindresorhus.com');
 
 // This call is cached
-memoizedGot('https://sindresorhus.com');
+await memoizedGot('https://sindresorhus.com');
 
-setTimeout(() => {
-	// This call is not cached as the cache has expired
-	memoizedGot('https://sindresorhus.com');
-}, 2000);
+await delay(2000);
+
+// This call is not cached as the cache has expired
+await memoizedGot('https://sindresorhus.com');
 ```
 
 ### Caching strategy
 
-See the [Caching strategy for `mem`](https://github.com/sindresorhus/mem#options).
+Similar to the [caching strategy for `mem`](https://github.com/sindresorhus/mem#options) with the following exceptions:
+
+- Promises returned from a memoized function will be cached internally and take priority over `cache`. The promise cache does not persist outside of the current execution and properties assigned to a returned promise are only guaranteed to still exist if a cached promise is available. All cached promises can be cleared with [`pMemoizeClear()`](#pmemoizeclearfn).
+- `.get()` and `.has()` methods on `cache` can return a promise instead of returning a value immediately.
+- Instead of `.set()` being provided an object with the properties `value` and `maxAge`, it will only be provided `value` as the first argument. If you want to implement time-based expiry, consider doing so in `.set()` itself.
 
 ## API
 
@@ -64,13 +69,6 @@ Default: `false`
 
 Cache rejected promises.
 
-##### maxAge
-
-Type: `number`\
-Default: `Infinity`
-
-The milliseconds until the cache expires.
-
 ##### cacheKey
 
 Type: `Function`\
@@ -81,7 +79,7 @@ Determines the cache key for storing the result based on the function arguments.
 
 A `cacheKey` function can return any type supported by `Map` (or whatever structure you use in the `cache` option).
 
-See the [caching strategy](https://github.com/sindresorhus/mem#caching-strategy) section in the `mem` package for more information.
+See the [caching strategy](#caching-strategy) section for more information.
 
 ##### cache
 
@@ -91,6 +89,44 @@ Default: `new Map()`
 Use a different cache storage. Must implement the following methods: `.has(key)`, `.get(key)`, `.set(key, value)`, `.delete(key)`, and optionally `.clear()`. You could for example use a `WeakMap` instead or [`quick-lru`](https://github.com/sindresorhus/quick-lru) for a LRU cache.
 
 See the [caching strategy](https://github.com/sindresorhus/mem#caching-strategy) section in the `mem` package for more information.
+
+### pMemoizeDecorator(options)
+
+Returns a [decorator](https://github.com/tc39/proposal-decorators) to memoize class methods or static class methods.
+
+Notes:
+
+- Only class methods and getters/setters can be memoized, not regular functions (they aren't part of the proposal);
+- Only [TypeScript’s decorators](https://www.typescriptlang.org/docs/handbook/decorators.html#parameter-decorators) are supported, not [Babel’s](https://babeljs.io/docs/en/babel-plugin-proposal-decorators), which use a different version of the proposal;
+- Being an experimental feature, they need to be enabled with `--experimentalDecorators`; follow TypeScript’s docs.
+
+#### options
+
+Type: `object`
+
+Same as options for `pMemoize()`.
+
+```ts
+import {pMemoizeDecorator} from 'p-memoize';
+
+class Example {
+	index = 0
+
+	@pMemoizeDecorator()
+	async counter() {
+		return ++this.index;
+	}
+}
+
+class ExampleWithOptions {
+	index = 0
+
+	@pMemoizeDecorator({maxAge: 1000})
+	async counter() {
+		return ++this.index;
+	}
+}
+```
 
 ### pMemoizeClear(memoized)
 
