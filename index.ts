@@ -115,7 +115,7 @@ export default function pMemoize<
 		}
 
 		if (await cache.has(key)) {
-			return cache.get(key)! as ReturnType<FunctionToMemoize>; // eslint-disable-line @typescript-eslint/no-unsafe-return
+			return cache.get(key) as Promise<AsyncReturnType<FunctionToMemoize>>;
 		}
 
 		const promise = fn.apply(this, arguments_);
