@@ -122,15 +122,6 @@ test('cache option', async t => {
 	t.is(await memoized(bar), 1);
 });
 
-test('promise support', async t => {
-	let i = 0;
-	const memoized = pMemoize(async () => i++);
-	t.is(await memoized(), 0);
-	t.is(await memoized(), 0);
-	// @ts-expect-error Argument type does not match
-	t.is(await memoized(10), 1);
-});
-
 test('preserves the original function name', t => {
 	t.is(pMemoize(async function foo() {}).name, 'foo'); // eslint-disable-line func-names, @typescript-eslint/no-empty-function
 });
