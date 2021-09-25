@@ -26,13 +26,6 @@ interface Options<
 	readonly cachePromiseRejection?: boolean;
 
 	/**
-	Milliseconds until the cache expires.
-
-	@default Infinity
-	*/
-	readonly maxAge?: number;
-
-	/**
 	Determines the cache key for storing the result based on the function arguments. By default, __only the first argument is considered__ and it only works with [primitives](https://developer.mozilla.org/en-US/docs/Glossary/Primitive).
 
 	A `cacheKey` function can return any type supported by `Map` (or whatever structure you use in the `cache` option).
@@ -40,18 +33,18 @@ interface Options<
 	You can have it cache **all** the arguments by value with `JSON.stringify`, if they are compatible:
 
 	```
-	import mem from 'mem';
+	import pMemoize from 'p-memoize';
 
-	mem(function_, {cacheKey: JSON.stringify});
+	pMemoize(function_, {cacheKey: JSON.stringify});
 	```
 
 	Or you can use a more full-featured serializer like [serialize-javascript](https://github.com/yahoo/serialize-javascript) to add support for `RegExp`, `Date` and so on.
 
 	```
-	import mem from 'mem';
+	import pMemoize from 'p-memoize';
 	import serializeJavascript from 'serialize-javascript';
 
-	mem(function_, {cacheKey: serializeJavascript});
+	pMemoize(function_, {cacheKey: serializeJavascript});
 	```
 
 	@default arguments_ => arguments_[0]
@@ -79,7 +72,7 @@ import pMemoize from 'p-memoize';
 import {setTimeout as delay} from 'timer/promises';
 import got from 'got';
 
-const memoizedGot = pMemoize(got, {maxAge: 1000});
+const memoizedGot = pMemoize(got);
 
 await memoizedGot('https://sindresorhus.com');
 
@@ -164,7 +157,7 @@ class Example {
 class ExampleWithOptions {
 	index = 0
 
-	@pMemoizeDecorator({maxAge: 1000})
+	@pMemoizeDecorator()
 	async counter() {
 		return ++this.index;
 	}

@@ -23,7 +23,7 @@ import pMemoize from 'p-memoize';
 import {setTimeout as delay} from 'timer/promises';
 import got from 'got';
 
-const memoizedGot = pMemoize(got, {maxAge: 1000});
+const memoizedGot = pMemoize(got);
 
 await memoizedGot('https://sindresorhus.com');
 
@@ -121,7 +121,7 @@ class Example {
 class ExampleWithOptions {
 	index = 0
 
-	@pMemoizeDecorator({maxAge: 1000})
+	@pMemoizeDecorator()
 	async counter() {
 		return ++this.index;
 	}

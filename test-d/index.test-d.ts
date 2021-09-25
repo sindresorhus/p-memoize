@@ -4,7 +4,6 @@ import pMemoize, {pMemoizeClear} from '..';
 const fn = async (text: string) => Boolean(text);
 
 expectType<typeof fn>(pMemoize(fn));
-expectType<typeof fn>(pMemoize(fn, {maxAge: 1}));
 expectType<typeof fn>(pMemoize(fn, {cacheKey: ([firstArgument]: [string]) => firstArgument}));
 expectType<typeof fn>(
 	pMemoize(fn, {
