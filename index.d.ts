@@ -77,7 +77,7 @@ setTimeout(() => {
 */
 export default function pMemoize<ArgumentsType extends unknown[], ReturnType, CacheKeyType>(
 	fn: (...arguments: ArgumentsType) => PromiseLike<ReturnType>,
-	options?: Options<ArgumentsType, CacheKeyType, ReturnType>
+	options?: Options<ArgumentsType, CacheKeyType, <PromiseLike<ReturnType>>
 ): (...arguments: ArgumentsType) => Promise<ReturnType>;
 
 /**
