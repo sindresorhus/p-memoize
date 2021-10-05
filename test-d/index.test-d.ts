@@ -1,5 +1,5 @@
 import {expectType} from 'tsd';
-import pMemoize, {pMemoizeClear} from '..';
+import pMemoize, {pMemoizeClear} from '../index.js';
 
 const fn = async (text: string) => Boolean(text);
 

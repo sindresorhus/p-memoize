@@ -19,8 +19,8 @@ $ npm install p-memoize
 ## Usage
 
 ```js
+import {setTimeout as delay} from 'node:timer/promises';
 import pMemoize from 'p-memoize';
-import {setTimeout as delay} from 'timer/promises';
 import got from 'got';
 
 const memoizedGot = pMemoize(got);
