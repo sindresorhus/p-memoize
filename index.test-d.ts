@@ -7,7 +7,7 @@ expectType<(name: string) => Promise<string>>(
 expectType<() => Promise<number>>(pMemoize(async () => 1));
 
 expectType<() => Promise<number>>(pMemoize(async () => 1, {
-	cache: new Map<string, CacheItem<number>>()
+	cache: new Map<string, CacheItem<number>>(),
 }));
 
 pMemoize(async () => 1, {maxAge: 1, cachePromiseRejection: true});
