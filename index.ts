@@ -5,7 +5,7 @@ import type {AsyncReturnType} from 'type-fest';
 type AnyAsyncFunction = (...arguments_: readonly any[]) => Promise<unknown | void>;
 
 const cacheStore = new WeakMap<AnyAsyncFunction, CacheStorage<any, any>>();
-const promiseCacheStore = new WeakMap<AnyAsyncFunction, Map<any, any>>();
+const promiseCacheStore = new WeakMap<AnyAsyncFunction, Map<unknown, unknown>>();
 
 interface CacheStorage<KeyType, ValueType> {
 	has: (key: KeyType) => Promise<boolean> | boolean;
@@ -109,19 +109,19 @@ export default function pMemoize<
 		}
 
 		if (await cache.has(key)) {
-			return (await cache.get(key))!; // eslint-disable-line @typescript-eslint/no-unsafe-return
+			return (await cache.get(key))!;
 		}
 
-		const promise = fn.apply(this, arguments_);
+		const promise = fn.apply(this, arguments_) as Promise<AsyncReturnType<FunctionToMemoize>>;
 
 		promiseCache.set(key, promise);
 
 		try {
-			const result = await promise; // eslint-disable-line @typescript-eslint/no-unsafe-assignment
+			const result = await promise;
 
 			cache.set(key, result);
 
-			return result; // eslint-disable-line @typescript-eslint/no-unsafe-return
+			return result;
 		} catch (error: unknown) {
 			if (!cachePromiseRejection) {
 				promiseCache.delete(key);
