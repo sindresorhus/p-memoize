@@ -8,6 +8,11 @@ export interface CacheStorage<KeyType, ValueType> {
 	clear?: () => void; // eslint-disable-line @typescript-eslint/member-ordering
 }
 
+export interface CacheItem<ReturnType> {
+	data: PromiseLike<ReturnType>;
+	maxAge: number;
+}
+
 export type Options<
 	ArgumentsType extends unknown[],
 	CacheKeyType,
@@ -47,7 +52,7 @@ export type Options<
 
 	See the [caching strategy](https://github.com/sindresorhus/mem#caching-strategy) section in the `mem` package for more information.
 	*/
-	readonly cache?: CacheStorage<CacheKeyType, {data: ReturnType; maxAge: number}>;
+	readonly cache?: CacheStorage<CacheKeyType, CacheItem<ReturnType>>;
 };
 
 /**
@@ -77,7 +82,7 @@ setTimeout(() => {
 */
 export default function pMemoize<ArgumentsType extends unknown[], ReturnType, CacheKeyType>(
 	fn: (...arguments: ArgumentsType) => PromiseLike<ReturnType>,
-	options?: Options<ArgumentsType, CacheKeyType, PromiseLike<ReturnType>>
+	options?: Options<ArgumentsType, CacheKeyType, ReturnType>
 ): (...arguments: ArgumentsType) => Promise<ReturnType>;
 
 /**
