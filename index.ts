@@ -142,6 +142,10 @@ export default function pMemoize<
 }
 
 /**
+- Only class methods and getters/setters can be memoized, not regular functions (they aren't part of the proposal);
+- Only [TypeScript’s decorators](https://www.typescriptlang.org/docs/handbook/decorators.html#parameter-decorators) are supported, not [Babel’s](https://babeljs.io/docs/en/babel-plugin-proposal-decorators), which use a different version of the proposal;
+- Being an experimental feature, they need to be enabled with `--experimentalDecorators`; follow TypeScript’s docs.
+
 @returns A [decorator](https://github.com/tc39/proposal-decorators) to memoize class methods or static class methods.
 
 @example
