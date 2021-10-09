@@ -42,7 +42,7 @@ Similar to the [caching strategy for `mem`](https://github.com/sindresorhus/mem#
 
 - Promises returned from a memoized function will be cached internally and take priority over `cache`. The promise cache does not persist outside of the current instance and properties assigned to a returned promise will not be kept. All cached promises can be cleared with [`pMemoizeClear()`](#pmemoizeclearfn).
 - `.get()` and `.has()` methods on `cache` can return a promise instead of returning a value immediately.
-- Instead of `.set()` being provided an object with the properties `value` and `maxAge`, it will only be provided `value` as the first argument. If you want to implement time-based expiry, consider doing so in `.set()` itself.
+- Instead of `.set()` being provided an object with the properties `value` and `maxAge`, it will only be provided `value` as the first argument. If you want to implement time-based expiry, consider [doing so in `cache`](#time-based-cache-expiration).
 
 ## API
 
