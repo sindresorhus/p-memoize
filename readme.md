@@ -134,6 +134,20 @@ Clear all cached data of a memoized function.
 
 It will throw when given a non-memoized function.
 
+## Tips
+
+### Time-based cache expiration
+
+```js
+import pMemoize from 'p-memoize';
+import ExpiryMap from 'expiry-map';
+import got from 'got';
+
+const cache = new ExpiryMap(10000); // Cached values expire after 10 seconds
+
+const memoizedGot = pMemoize(got, {cache});
+```
+
 ## Related
 
 - [p-debounce](https://github.com/sindresorhus/p-debounce) - Debounce promise-returning & async functions

@@ -94,7 +94,7 @@ export default function pMemoize<
 	{
 		cachePromiseRejection = false,
 		cacheKey,
-		cache = new Map(),
+		cache = new Map<CacheKeyType, AsyncReturnType<FunctionToMemoize>>(),
 	}: Options<FunctionToMemoize, CacheKeyType> = {},
 ): FunctionToMemoize {
 	// Promise objects can't be serialized so we keep track of them internally and only provide their resolved values to `cache`

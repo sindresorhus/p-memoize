@@ -3,8 +3,8 @@ import serializeJavascript from 'serialize-javascript';
 import pMemoize, {pMemoizeDecorator, pMemoizeClear} from './index.js';
 
 test('memoize', async t => {
-	let i = 0;
-	const fixture = async () => i++;
+	let index = 0;
+	const fixture = async () => index++;
 	const memoized = pMemoize(fixture);
 	t.is(await memoized(), 0);
 	t.is(await memoized(), 0);
@@ -44,14 +44,14 @@ test('memoize', async t => {
 
 	// Ensure that functions are stored by reference and not by "value" (e.g. their `.toString()` representation)
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(() => i++), 6);
+	t.is(await memoized(() => index++), 6);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(() => i++), 7);
+	t.is(await memoized(() => index++), 7);
 });
 
 test('cacheKey option', async t => {
-	let i = 0;
-	const fixture = async (..._arguments: any) => i++;
+	let index = 0;
+	const fixture = async (..._arguments: any) => index++;
 	const memoized = pMemoize(fixture, {cacheKey: ([firstArgument]) => String(firstArgument)});
 	t.is(await memoized(1), 0);
 	t.is(await memoized(1), 0);
@@ -61,8 +61,8 @@ test('cacheKey option', async t => {
 });
 
 test('memoize with multiple non-primitive arguments', async t => {
-	let i = 0;
-	const memoized = pMemoize(async () => i++, {cacheKey: JSON.stringify});
+	let index = 0;
+	const memoized = pMemoize(async () => index++, {cacheKey: JSON.stringify});
 	t.is(await memoized(), 0);
 	t.is(await memoized(), 0);
 	// @ts-expect-error Argument type does not match
@@ -76,8 +76,8 @@ test('memoize with multiple non-primitive arguments', async t => {
 });
 
 test('memoize with regexp arguments', async t => {
-	let i = 0;
-	const memoized = pMemoize(async () => i++, {cacheKey: serializeJavascript});
+	let index = 0;
+	const memoized = pMemoize(async () => index++, {cacheKey: serializeJavascript});
 	t.is(await memoized(), 0);
 	t.is(await memoized(), 0);
 	// @ts-expect-error Argument type does not match
@@ -91,10 +91,10 @@ test('memoize with regexp arguments', async t => {
 });
 
 test('memoize with Symbol arguments', async t => {
-	let i = 0;
+	let index = 0;
 	const argument1 = Symbol('fixture1');
 	const argument2 = Symbol('fixture2');
-	const memoized = pMemoize(async () => i++);
+	const memoized = pMemoize(async () => index++);
 	t.is(await memoized(), 0);
 	t.is(await memoized(), 0);
 	// @ts-expect-error Argument type does not match
@@ -108,8 +108,8 @@ test('memoize with Symbol arguments', async t => {
 });
 
 test('cache option', async t => {
-	let i = 0;
-	const fixture = async (..._arguments: any) => i++;
+	let index = 0;
+	const fixture = async (..._arguments: any) => index++;
 	const memoized = pMemoize(fixture, {
 		cache: new WeakMap(),
 		cacheKey: <ReturnValue>([firstArgument]: [ReturnValue]): ReturnValue => firstArgument,
@@ -127,8 +127,8 @@ test('preserves the original function name', t => {
 });
 
 test('.pMemoizeClear()', async t => {
-	let i = 0;
-	const fixture = async () => i++;
+	let index = 0;
+	const fixture = async () => index++;
 	const memoized = pMemoize(fixture);
 	t.is(await memoized(), 0);
 	t.is(await memoized(), 0);
