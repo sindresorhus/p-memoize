@@ -122,6 +122,22 @@ test('cache option', async t => {
 	t.is(await memoized(bar), 1);
 });
 
+test('internal promise cache is only used if a value already exists in cache', async t => {
+	let index = 0;
+	const fixture = async (..._arguments: any) => index++;
+	const cache = new Map();
+	const memoized = pMemoize(fixture, {
+		cache,
+		cacheKey: <ReturnValue>([firstArgument]: [ReturnValue]): ReturnValue => firstArgument,
+	});
+	const foo = {};
+	t.is(await memoized(foo), 0);
+	t.is(await memoized(foo), 0);
+	cache.delete(foo);
+	t.is(await memoized(foo), 1);
+	t.is(await memoized(foo), 1);
+});
+
 test('preserves the original function name', t => {
 	t.is(pMemoize(async function foo() {}).name, 'foo'); // eslint-disable-line func-names, @typescript-eslint/no-empty-function
 });

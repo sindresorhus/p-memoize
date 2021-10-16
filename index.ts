@@ -104,11 +104,11 @@ export default function pMemoize<
 	const memoized = async function (this: any, ...arguments_: Parameters<FunctionToMemoize>): Promise<AsyncReturnType<FunctionToMemoize>> {
 		const key = cacheKey ? cacheKey(arguments_) : arguments_[0] as CacheKeyType;
 
-		if (promiseCache.has(key)) {
-			return promiseCache.get(key)!;
-		}
-
 		if (await cache.has(key)) {
+			if (promiseCache.has(key)) {
+				return promiseCache.get(key)!;
+			}
+
 			return (await cache.get(key))!;
 		}
 
