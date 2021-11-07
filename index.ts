@@ -10,9 +10,8 @@ const promiseCacheStore = new WeakMap<AnyAsyncFunction, Map<unknown, unknown>>()
 interface CacheStorage<KeyType, ValueType> {
 	has: (key: KeyType) => Promise<boolean> | boolean;
 	get: (key: KeyType) => Promise<ValueType | undefined> | ValueType | undefined;
-	set: (key: KeyType, value: ValueType) => void;
-	delete: (key: KeyType) => void;
-	clear?: () => void;
+	set: (key: KeyType, value: ValueType) => Promise<void> | void | this;
+	clear?: () => Promise<void> | void;
 }
 
 interface Options<
@@ -119,7 +118,7 @@ export default function pMemoize<
 		try {
 			const result = await promise;
 
-			cache.set(key, result);
+			await cache.set(key, result);
 
 			return result;
 		} catch (error: unknown) {
@@ -210,7 +209,7 @@ Clear all cached data of a memoized function.
 
 @param fn - Memoized function.
 */
-export function pMemoizeClear(fn: AnyAsyncFunction): void {
+export async function pMemoizeClear(fn: AnyAsyncFunction): Promise<void> {
 	const cache = cacheStore.get(fn);
 	if (!cache) {
 		throw new TypeError('Can\'t clear a function that was not memoized!');
@@ -220,6 +219,6 @@ export function pMemoizeClear(fn: AnyAsyncFunction): void {
 		throw new TypeError('The cache Map can\'t be cleared!');
 	}
 
-	cache.clear();
+	await cache.clear();
 	promiseCacheStore.get(fn)!.clear();
 }

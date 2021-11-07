@@ -148,7 +148,7 @@ test('.pMemoizeClear()', async t => {
 	const memoized = pMemoize(fixture);
 	t.is(await memoized(), 0);
 	t.is(await memoized(), 0);
-	pMemoizeClear(memoized);
+	await pMemoizeClear(memoized);
 	t.is(await memoized(), 1);
 	t.is(await memoized(), 1);
 });
@@ -195,30 +195,34 @@ test('.pMemoizeDecorator()', async t => {
 	t.is(await beta.counter(), 2, 'The method should not be memoized across instances');
 });
 
-test('memClear() throws when called with a plain function', t => {
-	t.throws(() => {
-		pMemoizeClear(async () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
+test('memClear() throws when called with a plain function', async t => {
+	await t.throwsAsync(async () => {
+		await pMemoizeClear(async () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
 	}, {
 		message: 'Can\'t clear a function that was not memoized!',
 		instanceOf: TypeError,
 	});
 });
 
-test('memClear() throws when called on an unclearable cache', t => {
+test('memClear() throws when called on an unclearable cache', async t => {
 	const fixture = async () => 1;
 	const memoized = pMemoize(fixture, {
 		cache: new WeakMap(),
 	});
 
-	t.throws(() => {
-		pMemoizeClear(memoized);
+	await t.throwsAsync(async () => {
+		await pMemoizeClear(memoized);
 	}, {
 		message: 'The cache Map can\'t be cleared!',
 		instanceOf: TypeError,
 	});
 });
 
-test.failing('async cache bypass (this is not how it should work if https://github.com/sindresorhus/p-memoize/issues/34 is accepted)', async t => {
+test('async `cache.set` is awaited (#34)', async t => {
+	const delay = async (milliseconds: number) => new Promise<void>(resolve => {
+		setTimeout(resolve, milliseconds);
+	});
+
 	class SlowWriteCache<K, V> {
 		setResolvers: Array<() => void> = [];
 
@@ -248,23 +252,23 @@ test.failing('async cache bypass (this is not how it should work if https://gith
 
 	const memoized = pMemoize(async (n: number) => n + 1, {cache});
 
+	const resolveCacheSetPromise = (async () => {
+		await delay(100);
+
+		for (const resolveCacheSet of cache.setResolvers) {
+			resolveCacheSet();
+		}
+	})();
+
 	t.is(await memoized(1), 2);
 	t.is(await memoized(1), 2);
 
-	// `cache.set` called twice
-	t.is(cache.setResolvers.length, 2);
+	t.is(cache.setResolvers.length, 1);
 
-	for (const resolveCacheSet of cache.setResolvers) {
-		resolveCacheSet();
-	}
+	await resolveCacheSetPromise;
 
-	await new Promise<void>(resolve => {
-		setTimeout(resolve, 0);
-	});
-
-	// Only now `cache.set` has resolved and the memoization will start working
 	t.is(await memoized(1), 2);
 	t.is(await memoized(1), 2);
 
-	t.is(cache.setResolvers.length, 2);
+	t.is(cache.setResolvers.length, 1);
 });
