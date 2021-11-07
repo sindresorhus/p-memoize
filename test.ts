@@ -217,3 +217,54 @@ test('memClear() throws when called on an unclearable cache', t => {
 		instanceOf: TypeError,
 	});
 });
+
+test.failing('async cache bypass (this is not how it should work if https://github.com/sindresorhus/p-memoize/issues/34 is accepted)', async t => {
+	class SlowWriteCache<K, V> {
+		setResolvers: Array<() => void> = [];
+
+		private readonly _map = new Map<K, V>();
+
+		async has(key: K) {
+			return this._map.has(key);
+		}
+
+		async get(key: K) {
+			return this._map.get(key);
+		}
+
+		async set(key: K, value: V) {
+			await new Promise<void>(resolve => {
+				this.setResolvers.push(resolve);
+			});
+			this._map.set(key, value);
+		}
+
+		async delete(key: K) {
+			return this._map.delete(key);
+		}
+	}
+
+	const cache = new SlowWriteCache<number, number>();
+
+	const memoized = pMemoize(async (n: number) => n + 1, {cache});
+
+	t.is(await memoized(1), 2);
+	t.is(await memoized(1), 2);
+
+	// `cache.set` called twice
+	t.is(cache.setResolvers.length, 2);
+
+	for (const resolveCacheSet of cache.setResolvers) {
+		resolveCacheSet();
+	}
+
+	await new Promise<void>(resolve => {
+		setTimeout(resolve, 0);
+	});
+
+	// Only now `cache.set` has resolved and the memoization will start working
+	t.is(await memoized(1), 2);
+	t.is(await memoized(1), 2);
+
+	t.is(cache.setResolvers.length, 2);
+});
