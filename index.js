@@ -1,6 +1,7 @@
 'use strict';
 const mimicFn = require('mimic-fn');
 const mapAgeCleaner = require('map-age-cleaner');
+const pSettle = require('p-settle');
 
 const cacheStore = new WeakMap();
 
@@ -28,7 +29,7 @@ const pMemoize = (fn, {cachePromiseRejection = false, ...options} = {}) => {
 			maxAge: Number.POSITIVE_INFINITY
 		});
 
-		const [{reason}] = await Promise.allSettled([promise]);
+		const [{reason}] = await pSettle([promise]);
 		if (!cachePromiseRejection && reason) {
 			cache.delete(key);
 		} else if (maxAge) {
