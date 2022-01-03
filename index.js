@@ -26,7 +26,8 @@ const pMemoize = (fn, {cachePromiseRejection = false, ...options} = {}) => {
 		const promise = fn.apply(this, arguments_);
 		cache.set(key, {
 			data: promise,
-			maxAge: Number.POSITIVE_INFINITY
+			// Ref. https://github.com/sindresorhus/p-memoize/issues/39#issuecomment-985301556
+			maxAge: (2 ** 31) - 1
 		});
 
 		const [{reason}] = await pSettle([promise]);
