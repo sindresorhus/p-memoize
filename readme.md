@@ -19,7 +19,6 @@ $ npm install p-memoize
 ## Usage
 
 ```js
-import {setTimeout as delay} from 'node:timer/promises';
 import pMemoize from 'p-memoize';
 import got from 'got';
 
@@ -28,11 +27,6 @@ const memoizedGot = pMemoize(got);
 await memoizedGot('https://sindresorhus.com');
 
 // This call is cached
-await memoizedGot('https://sindresorhus.com');
-
-await delay(2000);
-
-// This call is not cached as the cache has expired
 await memoizedGot('https://sindresorhus.com');
 ```
 
