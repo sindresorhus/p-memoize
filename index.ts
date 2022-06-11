@@ -2,12 +2,12 @@ import mimicFn from 'mimic-fn';
 import type {AsyncReturnType} from 'type-fest';
 
 // TODO: Use the one in `type-fest` when it's added there.
-type AnyAsyncFunction = (...arguments_: readonly any[]) => Promise<unknown | void>;
+export type AnyAsyncFunction = (...arguments_: readonly any[]) => Promise<unknown | void>;
 
 const cacheStore = new WeakMap<AnyAsyncFunction, CacheStorage<any, any>>();
 const promiseCacheStore = new WeakMap<AnyAsyncFunction, Map<unknown, unknown>>();
 
-interface CacheStorage<KeyType, ValueType> {
+export interface CacheStorage<KeyType, ValueType> {
 	has: (key: KeyType) => Promise<boolean> | boolean;
 	get: (key: KeyType) => Promise<ValueType | undefined> | ValueType | undefined;
 	set: (key: KeyType, value: ValueType) => void;
@@ -15,7 +15,7 @@ interface CacheStorage<KeyType, ValueType> {
 	clear?: () => void;
 }
 
-interface Options<
+export interface Options<
 	FunctionToMemoize extends AnyAsyncFunction,
 	CacheKeyType,
 > {
