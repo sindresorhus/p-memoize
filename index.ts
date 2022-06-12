@@ -128,6 +128,8 @@ export default function pMemoize<
 			}
 
 			throw error as Error;
+		} finally {
+			promiseCache.delete(key);
 		}
 	} as FunctionToMemoize;
 
