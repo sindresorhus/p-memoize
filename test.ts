@@ -148,7 +148,7 @@ test('.pMemoizeClear()', async t => {
 	const memoized = pMemoize(fixture);
 	t.is(await memoized(), 0);
 	t.is(await memoized(), 0);
-	pMemoizeClear(memoized);
+	await pMemoizeClear(memoized);
 	t.is(await memoized(), 1);
 	t.is(await memoized(), 1);
 });
@@ -195,25 +195,80 @@ test('.pMemoizeDecorator()', async t => {
 	t.is(await beta.counter(), 2, 'The method should not be memoized across instances');
 });
 
-test('memClear() throws when called with a plain function', t => {
-	t.throws(() => {
-		pMemoizeClear(async () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
+test('memClear() throws when called with a plain function', async t => {
+	await t.throwsAsync(async () => {
+		await pMemoizeClear(async () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
 	}, {
 		message: 'Can\'t clear a function that was not memoized!',
 		instanceOf: TypeError,
 	});
 });
 
-test('memClear() throws when called on an unclearable cache', t => {
+test('memClear() throws when called on an unclearable cache', async t => {
 	const fixture = async () => 1;
 	const memoized = pMemoize(fixture, {
 		cache: new WeakMap(),
 	});
 
-	t.throws(() => {
-		pMemoizeClear(memoized);
+	await t.throwsAsync(async () => {
+		await pMemoizeClear(memoized);
 	}, {
 		message: 'The cache Map can\'t be cleared!',
 		instanceOf: TypeError,
 	});
+});
+
+test('async `cache.set` is awaited (#34)', async t => {
+	const delay = async (milliseconds: number) => new Promise<void>(resolve => {
+		setTimeout(resolve, milliseconds);
+	});
+
+	class SlowWriteCache<K, V> {
+		setResolvers: Array<() => void> = [];
+
+		private readonly _map = new Map<K, V>();
+
+		async has(key: K) {
+			return this._map.has(key);
+		}
+
+		async get(key: K) {
+			return this._map.get(key);
+		}
+
+		async set(key: K, value: V) {
+			await new Promise<void>(resolve => {
+				this.setResolvers.push(resolve);
+			});
+			this._map.set(key, value);
+		}
+
+		async delete(key: K) {
+			return this._map.delete(key);
+		}
+	}
+
+	const cache = new SlowWriteCache<number, number>();
+
+	const memoized = pMemoize(async (n: number) => n + 1, {cache});
+
+	const resolveCacheSetPromise = (async () => {
+		await delay(100);
+
+		for (const resolveCacheSet of cache.setResolvers) {
+			resolveCacheSet();
+		}
+	})();
+
+	t.is(await memoized(1), 2);
+	t.is(await memoized(1), 2);
+
+	t.is(cache.setResolvers.length, 1);
+
+	await resolveCacheSetPromise;
+
+	t.is(await memoized(1), 2);
+	t.is(await memoized(1), 2);
+
+	t.is(cache.setResolvers.length, 1);
 });

@@ -28,7 +28,7 @@ expectType<typeof overloadedFn>(pMemoize(overloadedFn));
 expectType<true>(await pMemoize(overloadedFn)(true));
 expectType<false>(await pMemoize(overloadedFn)(false));
 
-pMemoizeClear(fn);
+void pMemoizeClear(fn);
 
 // `cacheKey` tests.
 // The argument should match the memoized function’s parameters
@@ -62,9 +62,6 @@ pMemoize(async (_arguments: {key: string}) => 1, {
 		async has(key) {
 			expectType<Date>(key);
 			return true;
-		},
-		delete: key => {
-			expectType<Date>(key);
 		},
 		clear: () => undefined,
 	},
