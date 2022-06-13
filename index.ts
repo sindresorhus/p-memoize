@@ -10,22 +10,15 @@ const promiseCacheStore = new WeakMap<AnyAsyncFunction, Map<unknown, unknown>>()
 export interface CacheStorage<KeyType, ValueType> {
 	has: (key: KeyType) => Promise<boolean> | boolean;
 	get: (key: KeyType) => Promise<ValueType | undefined> | ValueType | undefined;
-	set: (key: KeyType, value: ValueType) => void;
-	delete: (key: KeyType) => void;
-	clear?: () => void;
+	set: (key: KeyType, value: ValueType) => Promise<unknown> | unknown;
+	delete: (key: KeyType) => unknown;
+	clear?: () => unknown;
 }
 
 export interface Options<
 	FunctionToMemoize extends AnyAsyncFunction,
 	CacheKeyType,
 > {
-	/**
-	Cache rejected promises.
-
-	@default false
-	*/
-	readonly cachePromiseRejection?: boolean;
-
 	/**
 	Determines the cache key for storing the result based on the function arguments. By default, __only the first argument is considered__ and it only works with [primitives](https://developer.mozilla.org/en-US/docs/Glossary/Primitive).
 
@@ -92,7 +85,6 @@ export default function pMemoize<
 >(
 	fn: FunctionToMemoize,
 	{
-		cachePromiseRejection = false,
 		cacheKey,
 		cache = new Map<CacheKeyType, AsyncReturnType<FunctionToMemoize>>(),
 	}: Options<FunctionToMemoize, CacheKeyType> = {},
@@ -104,11 +96,11 @@ export default function pMemoize<
 	const memoized = async function (this: any, ...arguments_: Parameters<FunctionToMemoize>): Promise<AsyncReturnType<FunctionToMemoize>> {
 		const key = cacheKey ? cacheKey(arguments_) : arguments_[0] as CacheKeyType;
 
-		if (await cache.has(key)) {
-			if (promiseCache.has(key)) {
-				return promiseCache.get(key)!;
-			}
+		if (promiseCache.has(key)) {
+			return promiseCache.get(key)!;
+		}
 
+		if (await cache.has(key)) {
 			return (await cache.get(key))!;
 		}
 
@@ -119,15 +111,11 @@ export default function pMemoize<
 		try {
 			const result = await promise;
 
-			cache.set(key, result);
+			await cache.set(key, result);
 
 			return result;
-		} catch (error: unknown) {
-			if (!cachePromiseRejection) {
-				promiseCache.delete(key);
-			}
-
-			throw error as Error;
+		} finally {
+			promiseCache.delete(key);
 		}
 	} as FunctionToMemoize;
 
@@ -221,5 +209,4 @@ export function pMemoizeClear(fn: AnyAsyncFunction): void {
 	}
 
 	cache.clear();
-	promiseCacheStore.get(fn)!.clear();
 }

@@ -1,5 +1,7 @@
 import test from 'ava';
 import serializeJavascript from 'serialize-javascript';
+import pDefer from 'p-defer';
+import {promiseStateAsync as promiseState} from 'p-state';
 import pMemoize, {pMemoizeDecorator, pMemoizeClear} from './index.js';
 
 test('memoize', async t => {
@@ -47,6 +49,32 @@ test('memoize', async t => {
 	t.is(await memoized(() => index++), 6);
 	// @ts-expect-error Argument type does not match
 	t.is(await memoized(() => index++), 7);
+});
+
+test('pending promises are cached', async t => {
+	const {promise, resolve} = pDefer();
+	let invocationsCount = 0;
+	const cache = new Map();
+
+	const memoized = pMemoize(async () => {
+		invocationsCount++;
+		return promise;
+	}, {cache});
+
+	const promise1 = memoized();
+	t.is(await promiseState(promise1), 'pending');
+
+	const promise2 = memoized(); 
+	t.is(await promiseState(promise2), 'pending');
+
+	t.is(invocationsCount, 1, 'pending promises are cached');
+
+	resolve(true);
+
+	t.true(await promise1, 'promise resolution is propagated');
+	t.true(await promise2, 'promise resolution is propagated');
+	t.true(await memoized(), 'cache is hit');
+	t.true(cache.get(undefined), 'result is cached');
 });
 
 test('cacheKey option', async t => {
@@ -195,7 +223,7 @@ test('.pMemoizeDecorator()', async t => {
 	t.is(await beta.counter(), 2, 'The method should not be memoized across instances');
 });
 
-test('memClear() throws when called with a plain function', t => {
+test('pMemoizeClear() throws when called with a plain function', t => {
 	t.throws(() => {
 		pMemoizeClear(async () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
 	}, {
@@ -204,7 +232,7 @@ test('memClear() throws when called with a plain function', t => {
 	});
 });
 
-test('memClear() throws when called on an unclearable cache', t => {
+test('pMemoizeClear() throws when called on an unclearable cache', t => {
 	const fixture = async () => 1;
 	const memoized = pMemoize(fixture, {
 		cache: new WeakMap(),

@@ -34,8 +34,8 @@ await memoizedGot('https://sindresorhus.com');
 
 Similar to the [caching strategy for `mem`](https://github.com/sindresorhus/mem#options) with the following exceptions:
 
-- Promises returned from a memoized function will be cached internally and take priority over `cache` if a value exists in both caches. The promise cache does not persist outside of the current instance and properties assigned to a returned promise will not be kept. All cached promises can be cleared with [`pMemoizeClear()`](#pmemoizeclearfn).
-- `.get()` and `.has()` methods on `cache` can return a promise instead of returning a value immediately.
+- Promises returned from a memoized function are locally cached until resolving, when their value is added to `cache`. Special properties assigned to a returned promise will not be kept after resolution and every promise may need to resolve with a serializable object if caching results in a database.
+- `.get()`, `.has()` and `.set()` methods on `cache` can run asynchronously by returning a promise.
 - Instead of `.set()` being provided an object with the properties `value` and `maxAge`, it will only be provided `value` as the first argument. If you want to implement time-based expiry, consider [doing so in `cache`](#time-based-cache-expiration).
 
 ## API
@@ -140,6 +140,18 @@ import got from 'got';
 const cache = new ExpiryMap(10000); // Cached values expire after 10 seconds
 
 const memoizedGot = pMemoize(got, {cache});
+```
+
+### Caching promise rejections
+
+```js
+import pMemoize from 'p-memoize';
+import pReflect from 'p-reflect';
+
+const memoizedGot = pMemoize(async (url, options) => pReflect(got(url, options)));
+
+await memoizedGot('https://example.com');
+// {isFulfilled: true, isRejected: false, value: '...'}
 ```
 
 ## Related
