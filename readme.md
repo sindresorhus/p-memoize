@@ -8,7 +8,7 @@ Useful for speeding up consecutive function calls by caching the result of calls
 
 By default, **only the memoized function's first argument is considered** via strict equality comparison. If you need to cache multiple arguments or cache `object`s *by value*, have a look at alternative [caching strategies](#caching-strategy) below.
 
-This package is similar to [mem](https://github.com/sindresorhus/mem) but with async-specific enhancements; in particular, it allows for asynchronous caches and does not cache rejected promises by default (unless the [`cachePromiseRejection`](#cachePromiseRejection) option is set).
+This package is similar to [mem](https://github.com/sindresorhus/mem) but with async-specific enhancements; in particular, it allows for asynchronous caches and does not cache rejected promises.
 
 ## Install
 

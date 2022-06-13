@@ -85,7 +85,7 @@ export default function pMemoize<
 >(
 	fn: FunctionToMemoize,
 	{
-		cacheKey,
+		cacheKey = ([firstArgument]) => firstArgument as CacheKeyType,
 		cache = new Map<CacheKeyType, AsyncReturnType<FunctionToMemoize>>(),
 	}: Options<FunctionToMemoize, CacheKeyType> = {},
 ): FunctionToMemoize {
@@ -94,7 +94,7 @@ export default function pMemoize<
 	const promiseCache = new Map<CacheKeyType, Promise<AsyncReturnType<FunctionToMemoize>>>();
 
 	const memoized = function (this: any, ...arguments_: Parameters<FunctionToMemoize>): Promise<AsyncReturnType<FunctionToMemoize>> { // eslint-disable-line @typescript-eslint/promise-function-async
-		const key = cacheKey ? cacheKey(arguments_) : arguments_[0] as CacheKeyType;
+		const key = cacheKey(arguments_);
 
 		if (promiseCache.has(key)) {
 			return promiseCache.get(key)!;
@@ -110,9 +110,11 @@ export default function pMemoize<
 
 				const result = await promise;
 
-				await cache.set(key, result);
-
-				return result;
+				try {
+					return result;
+				} finally {
+					await cache.set(key, result);
+				}
 			} finally {
 				promiseCache.delete(key);
 			}
