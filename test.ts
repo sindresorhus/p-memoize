@@ -77,6 +77,31 @@ test('pending promises are cached', async t => {
 	t.true(cache.get(undefined), 'result is cached');
 });
 
+test('pending promises are cached synchronously', async t => {
+	const {promise, resolve} = pDefer();
+	let invocationsCount = 0;
+	const cache = new Map();
+
+	const memoized = pMemoize(async () => {
+		invocationsCount++;
+		return promise;
+	}, {cache});
+
+	const promise1 = memoized();
+	const promise2 = memoized();
+	t.is(promise1, promise2);
+
+	resolve(true);
+	
+	t.true(await promise1, 'promise is executed');
+	t.true(await promise2, 'promise resolution is propagated');
+
+	t.is(invocationsCount, 1, 'pending promises are cached');
+
+	t.true(await memoized(), 'cache is hit');
+	t.true(cache.get(undefined), 'result is cached');
+})
+
 test('cacheKey option', async t => {
 	let index = 0;
 	const fixture = async (..._arguments: any) => index++;
