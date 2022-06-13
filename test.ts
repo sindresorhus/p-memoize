@@ -64,7 +64,7 @@ test('pending promises are cached', async t => {
 	const promise1 = memoized();
 	t.is(await promiseState(promise1), 'pending');
 
-	const promise2 = memoized(); 
+	const promise2 = memoized();
 	t.is(await promiseState(promise2), 'pending');
 
 	t.is(invocationsCount, 1, 'pending promises are cached');
