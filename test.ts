@@ -92,7 +92,7 @@ test('pending promises are cached synchronously', async t => {
 	t.is(promise1, promise2);
 
 	resolve(true);
-	
+
 	t.true(await promise1, 'promise is executed');
 	t.true(await promise2, 'promise resolution is propagated');
 
@@ -100,7 +100,7 @@ test('pending promises are cached synchronously', async t => {
 
 	t.true(await memoized(), 'cache is hit');
 	t.true(cache.get(undefined), 'result is cached');
-})
+});
 
 test('cacheKey option', async t => {
 	let index = 0;
