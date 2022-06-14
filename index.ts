@@ -5,7 +5,6 @@ import type {AsyncReturnType} from 'type-fest';
 export type AnyAsyncFunction = (...arguments_: readonly any[]) => Promise<unknown | void>;
 
 const cacheStore = new WeakMap<AnyAsyncFunction, CacheStorage<any, any>>();
-const promiseCacheStore = new WeakMap<AnyAsyncFunction, Map<unknown, unknown>>();
 
 export interface CacheStorage<KeyType, ValueType> {
 	has: (key: KeyType) => Promise<boolean> | boolean;
@@ -130,7 +129,6 @@ export default function pMemoize<
 	});
 
 	cacheStore.set(memoized, cache);
-	promiseCacheStore.set(memoized, promiseCache);
 
 	return memoized;
 }
