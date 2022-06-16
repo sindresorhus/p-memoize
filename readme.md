@@ -56,13 +56,6 @@ Type: `object`
 
 See the [`mem` options](https://github.com/sindresorhus/mem#options) in addition to the below option.
 
-##### cachePromiseRejection
-
-Type: `boolean`\
-Default: `false`
-
-Cache rejected promises.
-
 ##### cacheKey
 
 Type: `Function`\
