@@ -176,7 +176,7 @@ export function pMemoizeDecorator<
 		propertyKey: string,
 		descriptor: PropertyDescriptor,
 	): void => {
-		const input = target[propertyKey]; // eslint-disable-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+		const input = target[propertyKey]; // eslint-disable-line @typescript-eslint/no-unsafe-assignment
 
 		if (typeof input !== 'function') {
 			throw new TypeError('The decorated value must be a function');

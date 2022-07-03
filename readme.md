@@ -12,8 +12,8 @@ This package is similar to [mem](https://github.com/sindresorhus/mem) but with a
 
 ## Install
 
-```
-$ npm install p-memoize
+```sh
+npm install p-memoize
 ```
 
 ## Usage

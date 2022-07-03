@@ -14,7 +14,7 @@
 	"exports": "./dist/index.js",
 	"types": "dist/index.d.ts",
 	"engines": {
-		"node": ">=12.20"
+		"node": ">=14.16"
 	},
 	"scripts": {
 		"test": "xo && ava && npm run build && tsd",
@@ -48,28 +48,29 @@
 		"mimic-fn": "^4.0.0"
 	},
 	"devDependencies": {
-		"@sindresorhus/tsconfig": "^2.0.0",
-		"@types/serialize-javascript": "^5.0.1",
-		"ava": "^3.15.0",
+		"@sindresorhus/tsconfig": "^3.0.1",
+		"@types/serialize-javascript": "^5.0.2",
+		"ava": "^4.3.0",
 		"del-cli": "^4.0.1",
 		"delay": "^5.0.0",
 		"p-defer": "^4.0.0",
 		"p-state": "^1.0.0",
 		"serialize-javascript": "^6.0.0",
-		"ts-node": "^10.3.0",
-		"tsd": "^0.18.0",
-		"typescript": "^4.4.4",
-		"xo": "^0.44.0"
+		"ts-node": "^10.8.2",
+		"tsd": "^0.22.0",
+		"xo": "^0.50.0"
 	},
 	"ava": {
 		"extensions": {
 			"ts": "module"
 		},
-		"nonSemVerExperiments": {
-			"configurableModuleFormat": true
-		},
 		"nodeArguments": [
 			"--loader=ts-node/esm"
 		]
+	},
+	"xo": {
+		"rules": {
+			"@typescript-eslint/no-redundant-type-constituents": "off"
+		}
 	}
 }

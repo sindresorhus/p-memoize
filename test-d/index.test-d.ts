@@ -33,20 +33,20 @@ pMemoizeClear(fn);
 // `cacheKey` tests.
 // The argument should match the memoized function’s parameters
 pMemoize(async (text: string) => Boolean(text), {
-	cacheKey: arguments_ => {
+	cacheKey(arguments_) {
 		expectType<[string]>(arguments_);
 	},
 });
 
 pMemoize(async () => 1, {
-	cacheKey: arguments_ => {
+	cacheKey(arguments_) {
 		expectType<[]>(arguments_); // eslint-disable-line @typescript-eslint/ban-types
 	},
 });
 
 // Ensures that the various cache functions infer their arguments type from the return type of `cacheKey`
 pMemoize(async (_arguments: {key: string}) => 1, {
-	cacheKey: (arguments_: [{key: string}]) => {
+	cacheKey(arguments_: [{key: string}]) {
 		expectType<[{key: string}]>(arguments_);
 		return new Date();
 	},
@@ -55,7 +55,7 @@ pMemoize(async (_arguments: {key: string}) => 1, {
 			expectType<Date>(key);
 			return 5;
 		},
-		set: (key, data) => {
+		set(key, data) {
 			expectType<Date>(key);
 			expectType<number>(data);
 		},
@@ -63,7 +63,7 @@ pMemoize(async (_arguments: {key: string}) => 1, {
 			expectType<Date>(key);
 			return true;
 		},
-		delete: key => {
+		delete(key) {
 			expectType<Date>(key);
 		},
 		clear: () => undefined,
