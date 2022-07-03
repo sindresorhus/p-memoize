@@ -53,6 +53,8 @@
 		"ava": "^3.15.0",
 		"del-cli": "^4.0.1",
 		"delay": "^5.0.0",
+		"p-defer": "^4.0.0",
+		"p-state": "^1.0.0",
 		"serialize-javascript": "^6.0.0",
 		"ts-node": "^10.3.0",
 		"tsd": "^0.18.0",

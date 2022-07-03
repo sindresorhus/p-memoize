@@ -5,27 +5,19 @@ import type {AsyncReturnType} from 'type-fest';
 export type AnyAsyncFunction = (...arguments_: readonly any[]) => Promise<unknown | void>;
 
 const cacheStore = new WeakMap<AnyAsyncFunction, CacheStorage<any, any>>();
-const promiseCacheStore = new WeakMap<AnyAsyncFunction, Map<unknown, unknown>>();
 
 export interface CacheStorage<KeyType, ValueType> {
 	has: (key: KeyType) => Promise<boolean> | boolean;
 	get: (key: KeyType) => Promise<ValueType | undefined> | ValueType | undefined;
-	set: (key: KeyType, value: ValueType) => void;
-	delete: (key: KeyType) => void;
-	clear?: () => void;
+	set: (key: KeyType, value: ValueType) => Promise<unknown> | unknown;
+	delete: (key: KeyType) => unknown;
+	clear?: () => unknown;
 }
 
 export interface Options<
 	FunctionToMemoize extends AnyAsyncFunction,
 	CacheKeyType,
 > {
-	/**
-	Cache rejected promises.
-
-	@default false
-	*/
-	readonly cachePromiseRejection?: boolean;
-
 	/**
 	Determines the cache key for storing the result based on the function arguments. By default, __only the first argument is considered__ and it only works with [primitives](https://developer.mozilla.org/en-US/docs/Glossary/Primitive).
 
@@ -92,8 +84,7 @@ export default function pMemoize<
 >(
 	fn: FunctionToMemoize,
 	{
-		cachePromiseRejection = false,
-		cacheKey,
+		cacheKey = ([firstArgument]) => firstArgument as CacheKeyType,
 		cache = new Map<CacheKeyType, AsyncReturnType<FunctionToMemoize>>(),
 	}: Options<FunctionToMemoize, CacheKeyType> = {},
 ): FunctionToMemoize {
@@ -101,34 +92,36 @@ export default function pMemoize<
 	// `Promise<AsyncReturnType<FunctionToMemoize>>` is used instead of `ReturnType<FunctionToMemoize>` because promise properties are not kept
 	const promiseCache = new Map<CacheKeyType, Promise<AsyncReturnType<FunctionToMemoize>>>();
 
-	const memoized = async function (this: any, ...arguments_: Parameters<FunctionToMemoize>): Promise<AsyncReturnType<FunctionToMemoize>> {
-		const key = cacheKey ? cacheKey(arguments_) : arguments_[0] as CacheKeyType;
+	const memoized = function (this: any, ...arguments_: Parameters<FunctionToMemoize>): Promise<AsyncReturnType<FunctionToMemoize>> { // eslint-disable-line @typescript-eslint/promise-function-async
+		const key = cacheKey(arguments_);
 
-		if (await cache.has(key)) {
-			if (promiseCache.has(key)) {
-				return promiseCache.get(key)!;
-			}
-
-			return (await cache.get(key))!;
+		if (promiseCache.has(key)) {
+			return promiseCache.get(key)!;
 		}
 
-		const promise = fn.apply(this, arguments_) as Promise<AsyncReturnType<FunctionToMemoize>>;
+		const promise = (async () => {
+			try {
+				if (await cache.has(key)) {
+					return (await cache.get(key))!;
+				}
+
+				const promise = fn.apply(this, arguments_) as Promise<AsyncReturnType<FunctionToMemoize>>;
+
+				const result = await promise;
+
+				try {
+					return result;
+				} finally {
+					await cache.set(key, result);
+				}
+			} finally {
+				promiseCache.delete(key);
+			}
+		})();
 
 		promiseCache.set(key, promise);
 
-		try {
-			const result = await promise;
-
-			cache.set(key, result);
-
-			return result;
-		} catch (error: unknown) {
-			if (!cachePromiseRejection) {
-				promiseCache.delete(key);
-			}
-
-			throw error as Error;
-		}
+		return promise;
 	} as FunctionToMemoize;
 
 	mimicFn(memoized, fn, {
@@ -136,7 +129,6 @@ export default function pMemoize<
 	});
 
 	cacheStore.set(memoized, cache);
-	promiseCacheStore.set(memoized, promiseCache);
 
 	return memoized;
 }
@@ -221,5 +213,4 @@ export function pMemoizeClear(fn: AnyAsyncFunction): void {
 	}
 
 	cache.clear();
-	promiseCacheStore.get(fn)!.clear();
 }
