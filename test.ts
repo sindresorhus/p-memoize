@@ -259,7 +259,7 @@ test('.pMemoizeDecorator()', async t => {
 	t.is(await beta.counter(), 2, 'The method should not be memoized across instances');
 });
 
-test('pMemoizeClear() throws when called with a plain function', t => {
+test('.pMemoizeClear() throws when called with a plain function', t => {
 	t.throws(() => {
 		pMemoizeClear(async () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
 	}, {
@@ -268,7 +268,7 @@ test('pMemoizeClear() throws when called with a plain function', t => {
 	});
 });
 
-test('pMemoizeClear() throws when called on an unclearable cache', t => {
+test('.pMemoizeClear() throws when called on an unclearable cache', t => {
 	const fixture = async () => 1;
 	const memoized = pMemoize(fixture, {
 		cache: new WeakMap(),
@@ -278,6 +278,20 @@ test('pMemoizeClear() throws when called on an unclearable cache', t => {
 		pMemoizeClear(memoized);
 	}, {
 		message: 'The cache Map can\'t be cleared!',
+		instanceOf: TypeError,
+	});
+});
+
+test('.pMemoizeClear() throws when called on a disabled cache', t => {
+	const fixture = async () => 1;
+	const memoized = pMemoize(fixture, {
+		cache: false,
+	});
+
+	t.throws(() => {
+		pMemoizeClear(memoized);
+	}, {
+		message: 'Can\'t clear a function that doesn\'t use a cache!',
 		instanceOf: TypeError,
 	});
 });

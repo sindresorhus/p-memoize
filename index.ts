@@ -212,7 +212,7 @@ export function pMemoizeClear(fn: AnyAsyncFunction): void {
 	const cache = cacheStore.get(fn);
 
 	if (!cache) {
-		throw new TypeError('Can\'t clear a function that doesn\'t use a cache');
+		throw new TypeError('Can\'t clear a function that doesn\'t use a cache!');
 	}
 
 	if (typeof cache.clear !== 'function') {
