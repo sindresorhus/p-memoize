@@ -195,6 +195,17 @@ test('preserves the original function name', t => {
 	t.is(pMemoize(async function foo() {}).name, 'foo'); // eslint-disable-line func-names, @typescript-eslint/no-empty-function
 });
 
+test('disables caching', async t => {
+	let index = 0;
+
+	const memoized = pMemoize(async () => index++, {cache: false});
+
+	t.is(await memoized(), 0);
+	t.is(await memoized(), 1);
+	t.is(await memoized(), 2);
+	t.deepEqual(await Promise.all([memoized(), memoized()]), [3, 3]);
+});
+
 test('.pMemoizeClear()', async t => {
 	let index = 0;
 	const fixture = async () => index++;

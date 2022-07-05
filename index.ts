@@ -4,7 +4,7 @@ import type {AsyncReturnType} from 'type-fest';
 // TODO: Use the one in `type-fest` when it's added there.
 export type AnyAsyncFunction = (...arguments_: readonly any[]) => Promise<unknown | void>;
 
-const cacheStore = new WeakMap<AnyAsyncFunction, CacheStorage<any, any>>();
+const cacheStore = new WeakMap<AnyAsyncFunction, CacheStorage<any, any> | false>();
 
 export interface CacheStorage<KeyType, ValueType> {
 	has: (key: KeyType) => Promise<boolean> | boolean;
@@ -46,12 +46,12 @@ export interface Options<
 	readonly cacheKey?: (arguments_: Parameters<FunctionToMemoize>) => CacheKeyType;
 
 	/**
-	Use a different cache storage. Must implement the following methods: `.has(key)`, `.get(key)`, `.set(key, value)`, `.delete(key)`, and optionally `.clear()`. You could for example use a `WeakMap` instead or [`quick-lru`](https://github.com/sindresorhus/quick-lru) for a LRU cache.
+	Use a different cache storage. Must implement the following methods: `.has(key)`, `.get(key)`, `.set(key, value)`, `.delete(key)`, and optionally `.clear()`. You could for example use a `WeakMap` instead or [`quick-lru`](https://github.com/sindresorhus/quick-lru) for a LRU cache. To disable caching so that only concurrent executions resolve with the same value, pass `false`.
 
 	@default new Map()
 	@example new WeakMap()
 	*/
-	readonly cache?: CacheStorage<CacheKeyType, AsyncReturnType<FunctionToMemoize>>;
+	readonly cache?: CacheStorage<CacheKeyType, AsyncReturnType<FunctionToMemoize>> | false;
 }
 
 /**
@@ -101,7 +101,7 @@ export default function pMemoize<
 
 		const promise = (async () => {
 			try {
-				if (await cache.has(key)) {
+				if (cache && await cache.has(key)) {
 					return (await cache.get(key))!;
 				}
 
@@ -112,7 +112,9 @@ export default function pMemoize<
 				try {
 					return result;
 				} finally {
-					await cache.set(key, result);
+					if (cache) {
+						await cache.set(key, result);
+					}
 				}
 			} finally {
 				promiseCache.delete(key);
@@ -203,9 +205,14 @@ Clear all cached data of a memoized function.
 @param fn - Memoized function.
 */
 export function pMemoizeClear(fn: AnyAsyncFunction): void {
-	const cache = cacheStore.get(fn);
-	if (!cache) {
+	if (!cacheStore.has(fn)) {
 		throw new TypeError('Can\'t clear a function that was not memoized!');
+	}
+
+	const cache = cacheStore.get(fn);
+
+	if (!cache) {
+		throw new TypeError('Can\'t clear a function that doesn\'t use a cache');
 	}
 
 	if (typeof cache.clear !== 'function') {

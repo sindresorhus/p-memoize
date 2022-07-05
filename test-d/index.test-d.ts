@@ -16,6 +16,9 @@ expectType<typeof fn>(
 	// The `firstArgument` of `fn` is of type `string`, so it's used
 	pMemoize(fn, {cache: new Map<string, boolean>()}),
 );
+expectType<typeof fn>(
+	pMemoize(fn, {cache: false}),
+);
 
 /* Overloaded function tests */
 async function overloadedFn(parameter: false): Promise<false>;
