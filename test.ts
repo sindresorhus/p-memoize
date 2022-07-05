@@ -195,6 +195,17 @@ test('preserves the original function name', t => {
 	t.is(pMemoize(async function foo() {}).name, 'foo'); // eslint-disable-line func-names, @typescript-eslint/no-empty-function
 });
 
+test('disables caching', async t => {
+	let index = 0;
+
+	const memoized = pMemoize(async () => index++, {cache: false});
+
+	t.is(await memoized(), 0);
+	t.is(await memoized(), 1);
+	t.is(await memoized(), 2);
+	t.deepEqual(await Promise.all([memoized(), memoized()]), [3, 3]);
+});
+
 test('.pMemoizeClear()', async t => {
 	let index = 0;
 	const fixture = async () => index++;
@@ -248,7 +259,7 @@ test('.pMemoizeDecorator()', async t => {
 	t.is(await beta.counter(), 2, 'The method should not be memoized across instances');
 });
 
-test('pMemoizeClear() throws when called with a plain function', t => {
+test('.pMemoizeClear() throws when called with a plain function', t => {
 	t.throws(() => {
 		pMemoizeClear(async () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
 	}, {
@@ -257,7 +268,7 @@ test('pMemoizeClear() throws when called with a plain function', t => {
 	});
 });
 
-test('pMemoizeClear() throws when called on an unclearable cache', t => {
+test('.pMemoizeClear() throws when called on an unclearable cache', t => {
 	const fixture = async () => 1;
 	const memoized = pMemoize(fixture, {
 		cache: new WeakMap(),
@@ -267,6 +278,20 @@ test('pMemoizeClear() throws when called on an unclearable cache', t => {
 		pMemoizeClear(memoized);
 	}, {
 		message: 'The cache Map can\'t be cleared!',
+		instanceOf: TypeError,
+	});
+});
+
+test('.pMemoizeClear() throws when called on a disabled cache', t => {
+	const fixture = async () => 1;
+	const memoized = pMemoize(fixture, {
+		cache: false,
+	});
+
+	t.throws(() => {
+		pMemoizeClear(memoized);
+	}, {
+		message: 'Can\'t clear a function that doesn\'t use a cache!',
 		instanceOf: TypeError,
 	});
 });
