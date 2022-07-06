@@ -54,8 +54,6 @@ Promise-returning or async function to be memoized.
 
 Type: `object`
 
-See the [`mem` options](https://github.com/sindresorhus/mem#options) in addition to the below option.
-
 ##### cacheKey
 
 Type: `Function`\
