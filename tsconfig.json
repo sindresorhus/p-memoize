@@ -6,5 +6,10 @@
 	},
 	"files": [
 		"index.ts"
-	]
+	],
+	"ts-node": {
+		"transpileOnly": true,
+		"files": true,
+		"experimentalResolver": true
+	}
 }

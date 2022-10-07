@@ -6,18 +6,18 @@ export type AnyAsyncFunction = (...arguments_: readonly any[]) => Promise<unknow
 
 const cacheStore = new WeakMap<AnyAsyncFunction, CacheStorage<any, any> | false>();
 
-export interface CacheStorage<KeyType, ValueType> {
+export type CacheStorage<KeyType, ValueType> = {
 	has: (key: KeyType) => Promise<boolean> | boolean;
 	get: (key: KeyType) => Promise<ValueType | undefined> | ValueType | undefined;
 	set: (key: KeyType, value: ValueType) => Promise<unknown> | unknown;
 	delete: (key: KeyType) => unknown;
 	clear?: () => unknown;
-}
+};
 
-export interface Options<
+export type Options<
 	FunctionToMemoize extends AnyAsyncFunction,
 	CacheKeyType,
-> {
+> = {
 	/**
 	Determines the cache key for storing the result based on the function arguments. By default, __only the first argument is considered__ and it only works with [primitives](https://developer.mozilla.org/en-US/docs/Glossary/Primitive).
 
@@ -52,7 +52,7 @@ export interface Options<
 	@example new WeakMap()
 	*/
 	readonly cache?: CacheStorage<CacheKeyType, AsyncReturnType<FunctionToMemoize>> | false;
-}
+};
 
 /**
 [Memoize](https://en.wikipedia.org/wiki/Memoization) functions - An optimization used to speed up consecutive function calls by caching the result of calls with identical input.
@@ -119,7 +119,7 @@ export default function pMemoize<
 			} finally {
 				promiseCache.delete(key);
 			}
-		})();
+		})() as Promise<AsyncReturnType<FunctionToMemoize>>;
 
 		promiseCache.set(key, promise);
 
