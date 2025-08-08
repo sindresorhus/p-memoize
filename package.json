@@ -14,7 +14,7 @@
 	"exports": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"engines": {
-		"node": ">=14.16"
+		"node": ">=16"
 	},
 	"scripts": {
 		"test": "xo && ava && npm run build && tsd",
@@ -46,7 +46,7 @@
 	],
 	"dependencies": {
 		"mimic-fn": "^4.0.0",
-		"type-fest": "^3.0.0"
+		"type-fest": "^4.0.0"
 	},
 	"devDependencies": {
 		"@sindresorhus/tsconfig": "^3.0.1",

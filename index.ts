@@ -2,6 +2,7 @@ import mimicFn from 'mimic-fn';
 import type {AsyncReturnType} from 'type-fest';
 
 // TODO: Use the one in `type-fest` when it's added there.
+// See https://github.com/sindresorhus/type-fest/issues/121
 export type AnyAsyncFunction = (...arguments_: readonly any[]) => Promise<unknown | void>;
 
 const cacheStore = new WeakMap<AnyAsyncFunction, CacheStorage<any, any> | false>();
