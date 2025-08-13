@@ -1,4 +1,4 @@
-import mimicFn from 'mimic-fn';
+import mimicFunction from 'mimic-function';
 import type {AsyncReturnType} from 'type-fest';
 
 // TODO: Use the one in `type-fest` when it's added there.
@@ -19,7 +19,7 @@ export type Options<
 	CacheKeyType,
 > = {
 	/**
-	Determines the cache key for storing the result based on the function arguments. By default, __only the first argument is considered__ and it only works with [primitives](https://developer.mozilla.org/en-US/docs/Glossary/Primitive).
+	Determines the cache key for storing the result based on the function arguments. By default, __only the first argument is considered__ and it only works with [primitives](https://developer.mozilla.org/docs/Glossary/Primitive).
 
 	A `cacheKey` function can return any type supported by `Map` (or whatever structure you use in the `cache` option).
 
@@ -80,14 +80,19 @@ await memoizedGot('https://sindresorhus.com');
 */
 export default function pMemoize<
 	FunctionToMemoize extends AnyAsyncFunction,
-	CacheKeyType,
+	CacheKeyType = Parameters<FunctionToMemoize>[0],
+	OptionsType = Options<FunctionToMemoize, CacheKeyType>,
 >(
 	fn: FunctionToMemoize,
-	{
-		cacheKey = ([firstArgument]) => firstArgument as CacheKeyType,
-		cache = new Map<CacheKeyType, AsyncReturnType<FunctionToMemoize>>(),
-	}: Options<FunctionToMemoize, CacheKeyType> = {},
+	options?: OptionsType & Options<FunctionToMemoize, CacheKeyType>,
 ): FunctionToMemoize {
+	const defaultCacheKey = ([firstArgument]: Parameters<FunctionToMemoize>): CacheKeyType => firstArgument as CacheKeyType;
+
+	const {
+		cacheKey = defaultCacheKey,
+		cache = new Map<CacheKeyType, AsyncReturnType<FunctionToMemoize>>(),
+	} = options ?? {};
+
 	// Promise objects can't be serialized so we keep track of them internally and only provide their resolved values to `cache`
 	// `Promise<AsyncReturnType<FunctionToMemoize>>` is used instead of `ReturnType<FunctionToMemoize>` because promise properties are not kept
 	const promiseCache = new Map<CacheKeyType, Promise<AsyncReturnType<FunctionToMemoize>>>();
@@ -102,7 +107,7 @@ export default function pMemoize<
 		const promise = (async () => {
 			try {
 				if (cache && await cache.has(key)) {
-					return (await cache.get(key))!;
+					return (await cache.get(key)) as AsyncReturnType<FunctionToMemoize>;
 				}
 
 				const promise = fn.apply(this, arguments_) as Promise<AsyncReturnType<FunctionToMemoize>>;
@@ -119,14 +124,14 @@ export default function pMemoize<
 			} finally {
 				promiseCache.delete(key);
 			}
-		})() as Promise<AsyncReturnType<FunctionToMemoize>>;
+		})();
 
 		promiseCache.set(key, promise);
 
 		return promise;
 	} as FunctionToMemoize;
 
-	mimicFn(memoized, fn, {
+	mimicFunction(memoized, fn, {
 		ignoreNonConfigurable: true,
 	});
 
@@ -166,19 +171,17 @@ class ExampleWithOptions {
 ```
 */
 export function pMemoizeDecorator<
-	FunctionToMemoize extends AnyAsyncFunction,
-	CacheKeyType,
->(
-	options: Options<FunctionToMemoize, CacheKeyType> = {},
-) {
-	const instanceMap = new WeakMap();
+	FunctionToMemoize extends AnyAsyncFunction = AnyAsyncFunction,
+	CacheKeyType = Parameters<FunctionToMemoize>[0],
+>(options: Options<FunctionToMemoize, CacheKeyType> = {}) {
+	const instanceMap = new WeakMap<Record<string, unknown>, FunctionToMemoize>();
 
 	return (
 		target: any,
 		propertyKey: string,
 		descriptor: PropertyDescriptor,
 	): void => {
-		const input = target[propertyKey]; // eslint-disable-line @typescript-eslint/no-unsafe-assignment
+		const input = target[propertyKey] as unknown;
 
 		if (typeof input !== 'function') {
 			throw new TypeError('The decorated value must be a function');
@@ -187,14 +190,15 @@ export function pMemoizeDecorator<
 		delete descriptor.value;
 		delete descriptor.writable;
 
-		descriptor.get = function () {
+		descriptor.get = function (this: Record<string, unknown>) {
 			if (!instanceMap.has(this)) {
-				const value = pMemoize(input, options) as FunctionToMemoize;
+				// TypeScript can't statically verify this is safe, but runtime check above ensures it's a function
+				const value = pMemoize(input as FunctionToMemoize, options);
 				instanceMap.set(this, value);
 				return value;
 			}
 
-			return instanceMap.get(this) as FunctionToMemoize;
+			return instanceMap.get(this)!;
 		};
 	};
 }

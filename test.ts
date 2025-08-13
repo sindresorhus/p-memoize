@@ -1,3 +1,4 @@
+/* eslint-disable no-lone-blocks, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
 import test from 'ava';
 import serializeJavascript from 'serialize-javascript';
 import pDefer from 'p-defer';
@@ -295,3 +296,35 @@ test('.pMemoizeClear() throws when called on a disabled cache', t => {
 		instanceOf: TypeError,
 	});
 });
+
+{
+	pMemoize(async (url: string): Promise<string> => '', {
+		cacheKey: ([url]) => url,
+		cache: {
+			async get(url: string): Promise<string | undefined> {
+				return undefined;
+			},
+			async set(url: string, contents: string): Promise<void> {}, // eslint-disable-line @typescript-eslint/no-empty-function
+			async has(url: string): Promise<boolean> {
+				return true;
+			},
+		},
+	});
+}
+
+{
+	const cache = {
+		async get(url: string): Promise<string | undefined> {
+			return undefined;
+		},
+		async set(url: string, contents: string): Promise<void> {}, // eslint-disable-line @typescript-eslint/no-empty-function
+		async has(url: string): Promise<boolean> {
+			return true;
+		},
+	} as const;
+
+	pMemoize(async (url: string): Promise<string> => '', {
+		cacheKey: ([url]) => url,
+		cache,
+	});
+}

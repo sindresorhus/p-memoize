@@ -5,20 +5,13 @@ const fn = async (text: string) => Boolean(text);
 
 expectType<typeof fn>(pMemoize(fn));
 expectType<typeof fn>(pMemoize(fn, {cacheKey: ([firstArgument]: [string]) => firstArgument}));
-expectType<typeof fn>(
-	pMemoize(fn, {
-		// The cacheKey returns an array. This isn't deduplicated by a regular Map, but it's valid. The correct solution would be to use ManyKeysMap to deduplicate it correctly
-		cacheKey: (arguments_: [string]) => arguments_,
-		cache: new Map<[string], boolean>(),
-	}),
-);
-expectType<typeof fn>(
-	// The `firstArgument` of `fn` is of type `string`, so it's used
-	pMemoize(fn, {cache: new Map<string, boolean>()}),
-);
-expectType<typeof fn>(
-	pMemoize(fn, {cache: false}),
-);
+expectType<typeof fn>(pMemoize(fn, {
+	// The cacheKey returns an array. This isn't deduplicated by a regular Map, but it's valid. The correct solution would be to use ManyKeysMap to deduplicate it correctly
+	cacheKey: (arguments_: [string]) => arguments_,
+	cache: new Map<[string], boolean>(),
+}));
+expectType<typeof fn>(pMemoize(fn, {cache: new Map<string, boolean>()}));
+expectType<typeof fn>(pMemoize(fn, {cache: false}));
 
 /* Overloaded function tests */
 async function overloadedFn(parameter: false): Promise<false>;
@@ -42,8 +35,8 @@ pMemoize(async (text: string) => Boolean(text), {
 });
 
 pMemoize(async () => 1, {
-	cacheKey(arguments_) {
-		expectType<[]>(arguments_); // eslint-disable-line @typescript-eslint/ban-types
+	cacheKey(arguments_: []) { // eslint-disable-line @typescript-eslint/no-restricted-types
+		expectType<[]>(arguments_); // eslint-disable-line @typescript-eslint/no-restricted-types
 	},
 });
 
@@ -54,19 +47,19 @@ pMemoize(async (_arguments: {key: string}) => 1, {
 		return new Date();
 	},
 	cache: {
-		async get(key) {
+		async get(key: Date) {
 			expectType<Date>(key);
 			return 5;
 		},
-		set(key, data) {
+		set(key: Date, data: number) {
 			expectType<Date>(key);
 			expectType<number>(data);
 		},
-		async has(key) {
+		async has(key: Date) {
 			expectType<Date>(key);
 			return true;
 		},
-		delete(key) {
+		delete(key: Date) {
 			expectType<Date>(key);
 		},
 		clear: () => undefined,

@@ -4,11 +4,11 @@
 
 Useful for speeding up consecutive function calls by caching the result of calls with identical input.
 
-<!-- Please keep this section in sync with https://github.com/sindresorhus/mem/blob/main/readme.md -->
+<!-- Please keep this section in sync with https://github.com/sindresorhus/memoize/blob/main/readme.md -->
 
 By default, **only the memoized function's first argument is considered** via strict equality comparison. If you need to cache multiple arguments or cache `object`s *by value*, have a look at alternative [caching strategies](#caching-strategy) below.
 
-This package is similar to [mem](https://github.com/sindresorhus/mem) but with async-specific enhancements; in particular, it allows for asynchronous caches and does not cache rejected promises.
+This package is similar to [memoize](https://github.com/sindresorhus/memoize) but with async-specific enhancements; in particular, it allows for asynchronous caches and does not cache rejected promises.
 
 ## Install
 
@@ -32,7 +32,7 @@ await memoizedGot('https://sindresorhus.com');
 
 ### Caching strategy
 
-Similar to the [caching strategy for `mem`](https://github.com/sindresorhus/mem#options) with the following exceptions:
+Similar to the [caching strategy for `memoize`](https://github.com/sindresorhus/memoize#options) with the following exceptions:
 
 - Promises returned from a memoized function are locally cached until resolving, when their value is added to `cache`. Special properties assigned to a returned promise will not be kept after resolution and every promise may need to resolve with a serializable object if caching results in a database.
 - `.get()`, `.has()` and `.set()` methods on `cache` can run asynchronously by returning a promise.
