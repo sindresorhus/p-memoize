@@ -110,3 +110,24 @@ class ExampleClass {
 const instance = new ExampleClass();
 expectType<Promise<boolean>>(instance.method('test'));
 expectType<Promise<string>>(instance.methodWithOptions(42));
+
+// Test for issue #56: Ensure inline cache objects properly infer key types from function parameters
+pMemoize(async (url: string): Promise<string> => `fetched: ${url}`, {
+	cache: {
+		async get(key: string): Promise<string | undefined> {
+			expectType<string>(key); // Should be string, not unknown
+			return undefined;
+		},
+		async set(key: string, value: string): Promise<void> {
+			expectType<string>(key); // Should be string, not unknown
+			expectType<string>(value);
+		},
+		async has(key: string): Promise<boolean> {
+			expectType<string>(key); // Should be string, not unknown
+			return false;
+		},
+		async delete(key: string): Promise<void> {
+			expectType<string>(key); // Should be string, not unknown
+		},
+	},
+});
