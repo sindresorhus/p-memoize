@@ -14,6 +14,18 @@ export type CacheStorage<KeyType, ValueType> = {
 	clear?: () => unknown;
 };
 
+/**
+Controls whether a fulfilled value should be written to the cache.
+*/
+export type ShouldCache<
+	KeyType,
+	ValueType,
+	ArgumentsList extends readonly unknown[] = readonly unknown[],
+> = (
+	value: ValueType,
+	context: {key: KeyType; argumentsList: ArgumentsList},
+) => boolean | Promise<boolean>;
+
 export type Options<
 	FunctionToMemoize extends AnyAsyncFunction,
 	CacheKeyType,
@@ -52,6 +64,38 @@ export type Options<
 	@example new WeakMap()
 	*/
 	readonly cache?: CacheStorage<CacheKeyType, AsyncReturnType<FunctionToMemoize>> | false;
+
+	/**
+	Controls whether a fulfilled value should be written to the cache.
+
+	It runs after the function fulfills and before `cache.set`.
+
+	- Omit to keep current behavior (always write).
+	- Return `false` to skip writing to the cache (in-flight de-duplication is still cleared).
+	- Throw or reject to propagate the error and skip caching.
+
+	@example
+	```
+	import pMemoize from 'p-memoize';
+
+	// Only cache defined values
+	const getMaybe = pMemoize(async key => db.get(key), {
+		shouldCache: value => value !== undefined,
+	});
+
+	// Only cache non-empty arrays
+	const search = pMemoize(async query => fetchResults(query), {
+		shouldCache: value => Array.isArray(value) && value.length > 0,
+	});
+	```
+
+	Note: This only affects writes; reads from the cache are unchanged.
+	*/
+	readonly shouldCache?: ShouldCache<
+		CacheKeyType,
+		AsyncReturnType<FunctionToMemoize>,
+		Parameters<FunctionToMemoize>
+	>;
 };
 
 /**
@@ -118,7 +162,13 @@ export default function pMemoize<
 					return result;
 				} finally {
 					if (cache) {
-						await cache.set(key, result);
+						const allow = options?.shouldCache
+							? await options.shouldCache(result, {key, argumentsList: arguments_})
+							: true;
+
+						if (allow) {
+							await cache.set(key, result);
+						}
 					}
 				}
 			} finally {

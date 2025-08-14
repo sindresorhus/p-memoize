@@ -297,6 +297,246 @@ test('.pMemoizeClear() throws when called on a disabled cache', t => {
 	});
 });
 
+test.serial('shouldCache: skips cache.set when predicate false', async t => {
+	let calls = 0;
+	const cache = new Map<unknown, unknown>();
+	const setSpy: Array<{key: unknown; value: unknown}> = [];
+	const wrappedCache = {
+		async has(key: unknown) {
+			return cache.has(key);
+		},
+		async get(key: unknown) {
+			return cache.get(key);
+		},
+		async set(key: unknown, value: unknown) {
+			setSpy.push({key, value});
+			cache.set(key, value);
+		},
+		delete(key: unknown) {
+			cache.delete(key);
+		},
+		clear() {
+			cache.clear();
+		},
+	} as const;
+
+	const memoized = pMemoize(async () => ++calls, {
+		cache: wrappedCache,
+		shouldCache() {
+			return false;
+		},
+	});
+
+	// @ts-expect-error Argument type does not match
+	t.is(await memoized('a'), 1);
+	t.is(setSpy.length, 0, 'cache.set was not called');
+	// Next call should recompute since we skipped caching
+	// @ts-expect-error Argument type does not match
+	t.is(await memoized('a'), 2);
+});
+
+test.serial('shouldCache: still de-dupes in-flight', async t => {
+	const {promise, resolve} = pDefer<number>();
+	let invocationsCount = 0;
+	const memoized = pMemoize(async () => {
+		invocationsCount++;
+		return promise;
+	}, {
+		shouldCache() {
+			return false;
+		},
+	});
+
+	const promise1 = memoized();
+	const promise2 = memoized();
+	t.is(promise1, promise2, 'in-flight promise is shared');
+	resolve(42);
+	t.is(await promise1, 42);
+	t.is(await promise2, 42);
+	t.is(invocationsCount, 1);
+});
+
+test.serial('shouldCache: not called when cache disabled', async t => {
+	let called = 0;
+	let i = 0;
+	const memoized = pMemoize(async () => ++i, {
+		cache: false,
+		shouldCache() {
+			called++;
+			return true;
+		},
+	});
+
+	// @ts-expect-error Argument type does not match
+	t.is(await memoized('x'), 1);
+	// @ts-expect-error Argument type does not match
+	t.is(await memoized('x'), 2);
+	t.is(called, 0);
+});
+
+test.serial('shouldCache: not called on rejection and nothing cached', async t => {
+	const setSpy: unknown[] = [];
+	const cache = new Map<unknown, unknown>();
+	const wrappedCache = {
+		async has(key: unknown) {
+			return cache.has(key);
+		},
+		async get(key: unknown) {
+			return cache.get(key);
+		},
+		async set(key: unknown, value: unknown) {
+			setSpy.push([key, value]);
+			cache.set(key, value);
+		},
+	} as const;
+
+	let called = 0;
+	const memoized = pMemoize(async () => {
+		throw new Error('boom');
+	}, {
+		cache: wrappedCache,
+		shouldCache() {
+			called++;
+			return true;
+		},
+	});
+
+	// @ts-expect-error Argument type does not match
+	await t.throwsAsync(async () => memoized('x'), {message: 'boom'});
+	t.is(called, 0);
+	t.is(setSpy.length, 0);
+});
+
+test.serial('shouldCache: supports async predicate', async t => {
+	const setSpy: Array<{key: unknown; value: unknown}> = [];
+	const cache = new Map<unknown, unknown>();
+	const wrappedCache = {
+		async has(key: unknown) {
+			return cache.has(key);
+		},
+		async get(key: unknown) {
+			return cache.get(key);
+		},
+		async set(key: unknown, value: unknown) {
+			setSpy.push({key, value});
+			cache.set(key, value);
+		},
+		delete(key: unknown) {
+			cache.delete(key);
+		},
+	} as const;
+
+	const memoized = pMemoize(async () => 'ok', {
+		cache: wrappedCache,
+		async shouldCache(value) {
+			await Promise.resolve();
+			return value === 'ok';
+		},
+	});
+
+	// @ts-expect-error Argument type does not match
+	t.is(await memoized('x'), 'ok');
+	t.is(setSpy.length, 1, 'cache.set was called once');
+});
+
+test.serial('shouldCache: works with custom cacheKey', async t => {
+	const setKeys: unknown[] = [];
+	const cache = new Map<unknown, unknown>();
+	const wrappedCache = {
+		async has(key: unknown) {
+			return cache.has(key);
+		},
+		async get(key: unknown) {
+			return cache.get(key);
+		},
+		async set(key: unknown, value: unknown) {
+			setKeys.push(key);
+			cache.set(key, value);
+		},
+		delete(key: unknown) {
+			cache.delete(key);
+		},
+	} as const;
+
+	const memoized = pMemoize(async () => 'v', {
+		cache: wrappedCache,
+		cacheKey: ([first]) => String(first),
+		shouldCache(_value, {key, argumentsList}) {
+			t.is(key, String(argumentsList[0]));
+			return true;
+		},
+	});
+
+	// @ts-expect-error Argument type does not match
+	await memoized(1);
+	t.deepEqual(setKeys, ['1']);
+});
+
+test.serial('shouldCache: predicate error bubbles and does not cache', async t => {
+	const cache = new Map<unknown, unknown>();
+	const setSpy: unknown[] = [];
+	const wrappedCache = {
+		async has(key: unknown) {
+			return cache.has(key);
+		},
+		async get(key: unknown) {
+			return cache.get(key);
+		},
+		async set(key: unknown, value: unknown) {
+			setSpy.push([key, value]);
+			cache.set(key, value);
+		},
+		delete(key: unknown) {
+			cache.delete(key);
+		},
+	} as const;
+
+	const memoized = pMemoize(async () => 'x', {
+		cache: wrappedCache,
+		shouldCache() {
+			throw new Error('nope');
+		},
+	});
+
+	// @ts-expect-error Argument type does not match
+	await t.throwsAsync(async () => memoized('k'), {message: 'nope'});
+	t.is(setSpy.length, 0);
+});
+
+test.serial('shouldCache: interop with external eviction', async t => {
+	// Simulate external TTL eviction by deleting after set.
+	const cache = new Map<unknown, unknown>();
+	const wrappedCache = {
+		async has(key: unknown) {
+			return cache.has(key);
+		},
+		async get(key: unknown) {
+			return cache.get(key);
+		},
+		async set(key: unknown, value: unknown) {
+			cache.set(key, value);
+		},
+		delete(key: unknown) {
+			cache.delete(key);
+		},
+	} as const;
+
+	let index = 0;
+	const memoized = pMemoize(async () => ++index, {
+		cache: wrappedCache,
+		shouldCache() {
+			return true;
+		},
+	});
+
+	// @ts-expect-error Argument type does not match
+	t.is(await memoized('a'), 1);
+	// Evict externally
+	wrappedCache.delete('a');
+	// @ts-expect-error Argument type does not match
+	t.is(await memoized('a'), 2);
+});
+
 {
 	pMemoize(async (url: string): Promise<string> => '', {
 		cacheKey: ([url]) => url,

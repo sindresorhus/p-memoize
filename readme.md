@@ -75,6 +75,34 @@ Use a different cache storage. Must implement the following methods: `.has(key)`
 
 See the [caching strategy](https://github.com/sindresorhus/mem#caching-strategy) section in the `mem` package for more information.
 
+##### shouldCache
+
+Type: `(value, {key, argumentsList}) => boolean | Promise<boolean>`
+
+Controls whether a fulfilled value should be written to the cache.
+
+It runs after the function fulfills and before `cache.set`.
+
+- Omit to keep current behavior (always write).
+- Return `false` to skip writing to the cache (in-flight de-duplication is still cleared).
+- Throw or reject to propagate the error and skip caching.
+
+```js
+import pMemoize from 'p-memoize';
+
+// Only cache defined values
+const getMaybe = pMemoize(async key => db.get(key), {
+	shouldCache: value => value !== undefined,
+});
+
+// Only cache non-empty arrays
+const search = pMemoize(async query => fetchResults(query), {
+	shouldCache: value => Array.isArray(value) && value.length > 0,
+});
+```
+
+Note: Affects only writes; reads from the cache are unchanged.
+
 ### pMemoizeDecorator(options)
 
 Returns a [decorator](https://github.com/tc39/proposal-decorators) to memoize class methods or static class methods.
