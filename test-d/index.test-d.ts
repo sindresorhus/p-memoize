@@ -40,6 +40,32 @@ pMemoize(async () => 1, {
 	},
 });
 
+// `shouldCache` tests.
+pMemoize(async (text: string) => Boolean(text), {
+	shouldCache(value, context) {
+		expectType<boolean>(value);
+		expectType<[string]>(context.argumentsList);
+		expectType<string>(context.key);
+		return true;
+	},
+});
+
+pMemoize(async (_input: {key: string}) => 5 as const, {
+	cacheKey(_arguments: [{key: string}]): Date {
+		return new Date();
+	},
+	async shouldCache(value, context) {
+		expectType<5>(value);
+		expectType<[
+			{
+				key: string;
+			},
+		]>(context.argumentsList);
+		expectType<Date>(context.key);
+		return true;
+	},
+});
+
 // Ensures that the various cache functions infer their arguments type from the return type of `cacheKey`
 pMemoize(async (_arguments: {key: string}) => 1, {
 	cacheKey(arguments_: [{key: string}]) {
