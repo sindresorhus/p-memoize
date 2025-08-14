@@ -1,5 +1,5 @@
 import {expectType} from 'tsd';
-import pMemoize, {pMemoizeClear} from '../index.js';
+import pMemoize, {pMemoizeClear, pMemoizeDecorator} from '../index.js';
 
 const fn = async (text: string) => Boolean(text);
 
@@ -91,3 +91,22 @@ pMemoize(async (_arguments: {key: string}) => 1, {
 		clear: () => undefined,
 	},
 });
+
+// `pMemoizeDecorator` tests
+class ExampleClass {
+	@pMemoizeDecorator()
+	async method(text: string): Promise<boolean> {
+		return Boolean(text);
+	}
+
+	@pMemoizeDecorator({
+		cacheKey: ([firstArgument]) => String(firstArgument),
+	})
+	async methodWithOptions(value: number): Promise<string> {
+		return String(value);
+	}
+}
+
+const instance = new ExampleClass();
+expectType<Promise<boolean>>(instance.method('test'));
+expectType<Promise<string>>(instance.methodWithOptions(42));

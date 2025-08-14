@@ -105,13 +105,14 @@ Note: Affects only writes; reads from the cache are unchanged.
 
 ### pMemoizeDecorator(options)
 
-Returns a [decorator](https://github.com/tc39/proposal-decorators) to memoize class methods or static class methods.
+Returns a decorator to memoize class methods (instance and static).
 
 Notes:
 
-- Only class methods and getters/setters can be memoized, not regular functions (they aren't part of the proposal);
-- Only [TypeScript’s decorators](https://www.typescriptlang.org/docs/handbook/decorators.html#parameter-decorators) are supported, not [Babel’s](https://babeljs.io/docs/en/babel-plugin-proposal-decorators), which use a different version of the proposal;
-- Being an experimental feature, they need to be enabled with `--experimentalDecorators`; follow TypeScript’s docs.
+- Only class methods are supported; regular functions are not part of the decorators proposals.
+- Requires the new ECMAScript decorators (TypeScript 5.0+). Legacy `experimentalDecorators` are not supported.
+- Babel’s legacy decorators are not supported as they implement a different proposal variant.
+- Private methods are not supported.
 
 #### options
 
@@ -140,6 +141,8 @@ class ExampleWithOptions {
 	}
 }
 ```
+
+The decorator memoizes per-instance. You can clear the cache for an instance method using `pMemoizeClear(instance.method)`.
 
 ### pMemoizeClear(memoized)
 

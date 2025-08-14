@@ -191,11 +191,12 @@ export default function pMemoize<
 }
 
 /**
-- Only class methods and getters/setters can be memoized, not regular functions (they aren't part of the proposal);
-- Only [TypeScript’s decorators](https://www.typescriptlang.org/docs/handbook/decorators.html#parameter-decorators) are supported, not [Babel’s](https://babeljs.io/docs/en/babel-plugin-proposal-decorators), which use a different version of the proposal;
-- Being an experimental feature, they need to be enabled with `--experimentalDecorators`; follow TypeScript’s docs.
+- Only class methods are supported; regular functions are not part of the decorators proposals.
+- Uses the new ECMAScript decorators (TypeScript 5.0+). Legacy `experimentalDecorators` are not supported.
+- Babel’s legacy decorators are not supported.
+- Private methods are not supported.
 
-@returns A [decorator](https://github.com/tc39/proposal-decorators) to memoize class methods or static class methods.
+@returns A decorator to memoize class methods or static class methods.
 
 @example
 ```
@@ -223,33 +224,28 @@ class ExampleWithOptions {
 export function pMemoizeDecorator<
 	FunctionToMemoize extends AnyAsyncFunction = AnyAsyncFunction,
 	CacheKeyType = Parameters<FunctionToMemoize>[0],
->(options: Options<FunctionToMemoize, CacheKeyType> = {}) {
-	const instanceMap = new WeakMap<Record<string, unknown>, FunctionToMemoize>();
-
-	return (
-		target: any,
-		propertyKey: string,
-		descriptor: PropertyDescriptor,
-	): void => {
-		const input = target[propertyKey] as unknown;
-
-		if (typeof input !== 'function') {
-			throw new TypeError('The decorated value must be a function');
+>(options: Options<NoInfer<FunctionToMemoize>, NoInfer<CacheKeyType>> = {}) {
+	return function <This, Value extends FunctionToMemoize>(
+		value: Value,
+		context: ClassMethodDecoratorContext<This, Value>,
+	): void {
+		if (context.kind !== 'method') {
+			throw new TypeError('pMemoizeDecorator can only decorate methods');
 		}
 
-		delete descriptor.value;
-		delete descriptor.writable;
+		if (context.private) {
+			throw new TypeError('pMemoizeDecorator cannot decorate private methods');
+		}
 
-		descriptor.get = function (this: Record<string, unknown>) {
-			if (!instanceMap.has(this)) {
-				// TypeScript can't statically verify this is safe, but runtime check above ensures it's a function
-				const value = pMemoize(input as FunctionToMemoize, options);
-				instanceMap.set(this, value);
-				return value;
-			}
-
-			return instanceMap.get(this)!;
-		};
+		context.addInitializer(function (this: This) {
+			const memoizedMethod = pMemoize(value, options as Options<Value, CacheKeyType>);
+			Object.defineProperty(this, context.name, {
+				configurable: true,
+				writable: true,
+				enumerable: false,
+				value: memoizedMethod,
+			});
+		});
 	};
 }
 
