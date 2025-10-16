@@ -12,6 +12,7 @@ expectType<typeof fn>(pMemoize(fn, {
 }));
 expectType<typeof fn>(pMemoize(fn, {cache: new Map<string, boolean>()}));
 expectType<typeof fn>(pMemoize(fn, {cache: false}));
+expectType<typeof fn>(pMemoize(fn, {cache: 'while-pending'}));
 
 /* Overloaded function tests */
 async function overloadedFn(parameter: false): Promise<false>;

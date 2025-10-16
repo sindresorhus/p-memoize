@@ -207,6 +207,17 @@ test('disables caching', async t => {
 	t.deepEqual(await Promise.all([memoized(), memoized()]), [3, 3]);
 });
 
+test('cache: "while-pending" disables caching but deduplicates in-flight requests', async t => {
+	let index = 0;
+
+	const memoized = pMemoize(async () => index++, {cache: 'while-pending'});
+
+	t.is(await memoized(), 0);
+	t.is(await memoized(), 1);
+	t.is(await memoized(), 2);
+	t.deepEqual(await Promise.all([memoized(), memoized()]), [3, 3]);
+});
+
 test('.pMemoizeClear()', async t => {
 	let index = 0;
 	const fixture = async () => index++;
@@ -287,6 +298,20 @@ test('.pMemoizeClear() throws when called on a disabled cache', t => {
 	const fixture = async () => 1;
 	const memoized = pMemoize(fixture, {
 		cache: false,
+	});
+
+	t.throws(() => {
+		pMemoizeClear(memoized);
+	}, {
+		message: 'Can\'t clear a function that doesn\'t use a cache!',
+		instanceOf: TypeError,
+	});
+});
+
+test('.pMemoizeClear() throws when called on a while-pending cache', t => {
+	const fixture = async () => 1;
+	const memoized = pMemoize(fixture, {
+		cache: 'while-pending',
 	});
 
 	t.throws(() => {

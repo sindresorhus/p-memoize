@@ -68,10 +68,12 @@ See the [caching strategy](#caching-strategy) section for more information.
 
 ##### cache
 
-Type: `object | false`\
+Type: `object | false | 'while-pending'`\
 Default: `new Map()`
 
-Use a different cache storage. Must implement the following methods: `.has(key)`, `.get(key)`, `.set(key, value)`, `.delete(key)`, and optionally `.clear()`. You could for example use a `WeakMap` instead or [`quick-lru`](https://github.com/sindresorhus/quick-lru) for a LRU cache. To disable caching so that only concurrent executions resolve with the same value, pass `false`.
+Use a different cache storage. Must implement the following methods: `.has(key)`, `.get(key)`, `.set(key, value)`, `.delete(key)`, and optionally `.clear()`. You could for example use a `WeakMap` instead or [`quick-lru`](https://github.com/sindresorhus/quick-lru) for a LRU cache.
+
+To disable caching so that only concurrent executions resolve with the same value, pass `false` or `'while-pending'`.
 
 See the [caching strategy](https://github.com/sindresorhus/mem#caching-strategy) section in the `mem` package for more information.
 

@@ -58,12 +58,14 @@ export type Options<
 	readonly cacheKey?: (arguments_: Parameters<FunctionToMemoize>) => CacheKeyType;
 
 	/**
-	Use a different cache storage. Must implement the following methods: `.has(key)`, `.get(key)`, `.set(key, value)`, `.delete(key)`, and optionally `.clear()`. You could for example use a `WeakMap` instead or [`quick-lru`](https://github.com/sindresorhus/quick-lru) for a LRU cache. To disable caching so that only concurrent executions resolve with the same value, pass `false`.
+	Use a different cache storage. Must implement the following methods: `.has(key)`, `.get(key)`, `.set(key, value)`, `.delete(key)`, and optionally `.clear()`. You could for example use a `WeakMap` instead or [`quick-lru`](https://github.com/sindresorhus/quick-lru) for a LRU cache.
+
+	To disable caching so that only concurrent executions resolve with the same value, pass `false` or `'while-pending'`.
 
 	@default new Map()
 	@example new WeakMap()
 	*/
-	readonly cache?: CacheStorage<CacheKeyType, AsyncReturnType<FunctionToMemoize>> | false;
+	readonly cache?: CacheStorage<CacheKeyType, AsyncReturnType<FunctionToMemoize>> | false | 'while-pending';
 
 	/**
 	Controls whether a fulfilled value should be written to the cache.
@@ -137,6 +139,9 @@ export default function pMemoize<
 		cache = new Map<CacheKeyType, AsyncReturnType<FunctionToMemoize>>(),
 	} = options ?? {};
 
+	// Normalize 'while-pending' to false for internal use
+	const normalizedCache = cache === 'while-pending' ? false : cache;
+
 	// Promise objects can't be serialized so we keep track of them internally and only provide their resolved values to `cache`
 	// `Promise<AsyncReturnType<FunctionToMemoize>>` is used instead of `ReturnType<FunctionToMemoize>` because promise properties are not kept
 	const promiseCache = new Map<CacheKeyType, Promise<AsyncReturnType<FunctionToMemoize>>>();
@@ -150,8 +155,8 @@ export default function pMemoize<
 
 		const promise = (async () => {
 			try {
-				if (cache && await cache.has(key)) {
-					return (await cache.get(key)) as AsyncReturnType<FunctionToMemoize>;
+				if (normalizedCache && await normalizedCache.has(key)) {
+					return (await normalizedCache.get(key)) as AsyncReturnType<FunctionToMemoize>;
 				}
 
 				const promise = fn.apply(this, arguments_) as Promise<AsyncReturnType<FunctionToMemoize>>;
@@ -161,13 +166,13 @@ export default function pMemoize<
 				try {
 					return result;
 				} finally {
-					if (cache) {
+					if (normalizedCache) {
 						const allow = options?.shouldCache
 							? await options.shouldCache(result, {key, argumentsList: arguments_})
 							: true;
 
 						if (allow) {
-							await cache.set(key, result);
+							await normalizedCache.set(key, result);
 						}
 					}
 				}
@@ -185,7 +190,7 @@ export default function pMemoize<
 		ignoreNonConfigurable: true,
 	});
 
-	cacheStore.set(memoized, cache);
+	cacheStore.set(memoized, normalizedCache);
 
 	return memoized;
 }
