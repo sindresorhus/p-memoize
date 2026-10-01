@@ -1,8 +1,9 @@
 import mimicFunction from 'mimic-function';
-import type {AsyncReturnType} from 'type-fest';
 
 // TODO: Use the one in `type-fest` when it's added there.
 export type AnyAsyncFunction = (...arguments_: readonly any[]) => Promise<unknown | void>;
+
+type AsyncReturnType<FunctionType extends AnyAsyncFunction> = Awaited<ReturnType<FunctionType>>;
 
 const cacheStore = new WeakMap<AnyAsyncFunction, CacheStorage<any, any> | false>();
 
@@ -102,6 +103,7 @@ export type Options<
 [Memoize](https://en.wikipedia.org/wiki/Memoization) functions - An optimization used to speed up consecutive function calls by caching the result of calls with identical input.
 
 @param fn - Function to be memoized.
+@param options - See the `Options` type above.
 
 @example
 ```
@@ -148,9 +150,9 @@ export default function pMemoize<
 			return promiseCache.get(key)!;
 		}
 
-		const promise = (async () => {
+		const promise = (async (): Promise<AsyncReturnType<FunctionToMemoize>> => {
 			try {
-				if (cache && await cache.has(key)) {
+				if (cache !== false && await cache.has(key)) {
 					return (await cache.get(key)) as AsyncReturnType<FunctionToMemoize>;
 				}
 
@@ -161,12 +163,12 @@ export default function pMemoize<
 				try {
 					return result;
 				} finally {
-					if (cache) {
-						const allow = options?.shouldCache
+					if (cache !== false) {
+						const shouldCache = options?.shouldCache
 							? await options.shouldCache(result, {key, argumentsList: arguments_})
 							: true;
 
-						if (allow) {
+						if (shouldCache) {
 							await cache.set(key, result);
 						}
 					}
@@ -261,7 +263,7 @@ export function pMemoizeClear(fn: AnyAsyncFunction): void {
 
 	const cache = cacheStore.get(fn);
 
-	if (!cache) {
+	if (cache === false || cache === undefined) {
 		throw new TypeError('Can\'t clear a function that doesn\'t use a cache!');
 	}
 

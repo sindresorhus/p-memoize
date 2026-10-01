@@ -5,23 +5,18 @@
 	"license": "MIT",
 	"repository": "sindresorhus/p-memoize",
 	"funding": "https://github.com/sindresorhus/p-memoize?sponsor=1",
-	"author": {
-		"name": "Sindre Sorhus",
-		"email": "sindresorhus@gmail.com",
-		"url": "https://sindresorhus.com"
-	},
+	"author": "Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)",
 	"type": "module",
-	"types": "./dist/index.d.ts",
 	"exports": {
 		"types": "./dist/index.d.ts",
 		"default": "./dist/index.js"
 	},
 	"sideEffects": false,
 	"engines": {
-		"node": ">=20"
+		"node": ">=22"
 	},
 	"scripts": {
-		"test": "xo && ava && npm run build && tsd",
+		"test": "xo && node --import=tsimp/import --test test.ts && npm run build && tsd --typings dist/index.d.ts",
 		"build": "del-cli dist && tsc",
 		"prepack": "npm run build"
 	},
@@ -49,36 +44,41 @@
 		"bluebird"
 	],
 	"dependencies": {
-		"mimic-function": "^5.0.1",
-		"type-fest": "^4.41.0"
+		"mimic-function": "^5.0.1"
 	},
 	"devDependencies": {
-		"@sindresorhus/tsconfig": "^8.0.1",
+		"@sindresorhus/tsconfig": "^8.1.0",
 		"@types/serialize-javascript": "^5.0.4",
-		"ava": "^6.4.1",
-		"del-cli": "^6.0.0",
-		"delay": "^6.0.0",
+		"del-cli": "^7.0.0",
 		"p-defer": "^4.0.1",
-		"p-state": "^2.0.1",
-		"serialize-javascript": "^6.0.2",
+		"p-state": "^3.0.0",
+		"serialize-javascript": "^7.1.2",
 		"tsd": "^0.33.0",
 		"tsimp": "^2.0.12",
-		"xo": "^1.2.1"
+		"xo": "^5.0.1"
 	},
-	"ava": {
-		"environmentVariables": {
-			"TSIMP_DIAG": "ignore"
+	"xo": [
+		{
+			"rules": {
+				"@typescript-eslint/no-redundant-type-constituents": "off"
+			}
 		},
-		"extensions": {
-			"ts": "module"
+		{
+			"files": [
+				"test.ts",
+				"test-d/**"
+			],
+			"rules": {
+				"@typescript-eslint/no-unsafe-call": "off",
+				"@typescript-eslint/no-unsafe-member-access": "off",
+				"@typescript-eslint/no-unsafe-assignment": "off",
+				"@typescript-eslint/no-unsafe-return": "off"
+			}
 		},
-		"nodeArguments": [
-			"--import=tsimp/import"
-		]
-	},
-	"xo": {
-		"rules": {
-			"@typescript-eslint/no-redundant-type-constituents": "off"
+		{
+			"files": [
+				"package.json"
+			]
 		}
-	}
+	]
 }

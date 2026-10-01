@@ -1,58 +1,60 @@
-/* eslint-disable no-lone-blocks, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
-import test from 'ava';
+/* eslint-disable no-lone-blocks -- the trailing blocks are type-level fixtures that only have to type check. */
+/* eslint-disable node-test/no-duplicate-assertions -- calling a memoized function twice and asserting the same result is the behaviour under test, not a repeated assertion. */
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
 import serializeJavascript from 'serialize-javascript';
 import pDefer from 'p-defer';
 import {promiseStateAsync as promiseState} from 'p-state';
 import pMemoize, {pMemoizeDecorator, pMemoizeClear} from './index.js';
 
-test('memoize', async t => {
+test('memoize', async () => {
 	let index = 0;
 	const fixture = async () => index++;
 	const memoized = pMemoize(fixture);
-	t.is(await memoized(), 0);
-	t.is(await memoized(), 0);
-	t.is(await memoized(), 0);
+	assert.equal(await memoized(), 0);
+	assert.equal(await memoized(), 0);
+	assert.equal(await memoized(), 0);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(undefined), 0);
+	assert.equal(await memoized(undefined), 0);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(undefined), 0);
+	assert.equal(await memoized(undefined), 0);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized('foo'), 1);
+	assert.equal(await memoized('foo'), 1);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized('foo'), 1);
+	assert.equal(await memoized('foo'), 1);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized('foo'), 1);
+	assert.equal(await memoized('foo'), 1);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized('foo', 'bar'), 1);
+	assert.equal(await memoized('foo', 'bar'), 1);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized('foo', 'bar'), 1);
+	assert.equal(await memoized('foo', 'bar'), 1);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized('foo', 'bar'), 1);
+	assert.equal(await memoized('foo', 'bar'), 1);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(1), 2);
+	assert.equal(await memoized(1), 2);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(1), 2);
+	assert.equal(await memoized(1), 2);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(null), 3);
+	assert.equal(await memoized(null), 3);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(null), 3);
+	assert.equal(await memoized(null), 3);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(fixture), 4);
+	assert.equal(await memoized(fixture), 4);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(fixture), 4);
+	assert.equal(await memoized(fixture), 4);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(true), 5);
+	assert.equal(await memoized(true), 5);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(true), 5);
+	assert.equal(await memoized(true), 5);
 
 	// Ensure that functions are stored by reference and not by "value" (e.g. their `.toString()` representation)
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(() => index++), 6);
+	assert.equal(await memoized(() => index++), 6);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(() => index++), 7);
+	assert.equal(await memoized(() => index++), 7);
 });
 
-test('pending promises are cached', async t => {
+test('pending promises are cached', async () => {
 	const {promise, resolve} = pDefer();
 	let invocationsCount = 0;
 	const cache = new Map();
@@ -63,22 +65,22 @@ test('pending promises are cached', async t => {
 	}, {cache});
 
 	const promise1 = memoized();
-	t.is(await promiseState(promise1), 'pending');
+	assert.equal(await promiseState(promise1), 'pending');
 
 	const promise2 = memoized();
-	t.is(await promiseState(promise2), 'pending');
+	assert.equal(await promiseState(promise2), 'pending');
 
-	t.is(invocationsCount, 1, 'pending promises are cached');
+	assert.equal(invocationsCount, 1, 'pending promises are cached');
 
 	resolve(true);
 
-	t.true(await promise1, 'promise resolution is propagated');
-	t.true(await promise2, 'promise resolution is propagated');
-	t.true(await memoized(), 'cache is hit');
-	t.true(cache.get(undefined), 'result is cached');
+	assert.ok(await promise1, 'promise resolution is propagated');
+	assert.ok(await promise2, 'promise resolution is propagated');
+	assert.ok(await memoized(), 'cache is hit');
+	assert.ok(cache.get(undefined), 'result is cached');
 });
 
-test('pending promises are cached synchronously', async t => {
+test('pending promises are cached synchronously', async () => {
 	const {promise, resolve} = pDefer();
 	let invocationsCount = 0;
 	const cache = new Map();
@@ -90,78 +92,78 @@ test('pending promises are cached synchronously', async t => {
 
 	const promise1 = memoized();
 	const promise2 = memoized();
-	t.is(promise1, promise2);
+	assert.equal(promise1, promise2);
 
 	resolve(true);
 
-	t.true(await promise1, 'promise is executed');
-	t.true(await promise2, 'promise resolution is propagated');
+	assert.ok(await promise1, 'promise is executed');
+	assert.ok(await promise2, 'promise resolution is propagated');
 
-	t.is(invocationsCount, 1, 'pending promises are cached');
+	assert.equal(invocationsCount, 1, 'pending promises are cached');
 
-	t.true(await memoized(), 'cache is hit');
-	t.true(cache.get(undefined), 'result is cached');
+	assert.ok(await memoized(), 'cache is hit');
+	assert.ok(cache.get(undefined), 'result is cached');
 });
 
-test('cacheKey option', async t => {
+test('cacheKey option', async () => {
 	let index = 0;
 	const fixture = async (..._arguments: any) => index++;
 	const memoized = pMemoize(fixture, {cacheKey: ([firstArgument]) => String(firstArgument)});
-	t.is(await memoized(1), 0);
-	t.is(await memoized(1), 0);
-	t.is(await memoized('1'), 0);
-	t.is(await memoized('2'), 1);
-	t.is(await memoized(2), 1);
+	assert.equal(await memoized(1), 0);
+	assert.equal(await memoized(1), 0);
+	assert.equal(await memoized('1'), 0);
+	assert.equal(await memoized('2'), 1);
+	assert.equal(await memoized(2), 1);
 });
 
-test('memoize with multiple non-primitive arguments', async t => {
+test('memoize with multiple non-primitive arguments', async () => {
 	let index = 0;
 	const memoized = pMemoize(async () => index++, {cacheKey: JSON.stringify});
-	t.is(await memoized(), 0);
-	t.is(await memoized(), 0);
+	assert.equal(await memoized(), 0);
+	assert.equal(await memoized(), 0);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized({foo: true}, {bar: false}), 1);
+	assert.equal(await memoized({foo: true}, {bar: false}), 1);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized({foo: true}, {bar: false}), 1);
+	assert.equal(await memoized({foo: true}, {bar: false}), 1);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized({foo: true}, {bar: false}, {baz: true}), 2);
+	assert.equal(await memoized({foo: true}, {bar: false}, {baz: true}), 2);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized({foo: true}, {bar: false}, {baz: true}), 2);
+	assert.equal(await memoized({foo: true}, {bar: false}, {baz: true}), 2);
 });
 
-test('memoize with regexp arguments', async t => {
+test('memoize with regexp arguments', async () => {
 	let index = 0;
 	const memoized = pMemoize(async () => index++, {cacheKey: serializeJavascript});
-	t.is(await memoized(), 0);
-	t.is(await memoized(), 0);
+	assert.equal(await memoized(), 0);
+	assert.equal(await memoized(), 0);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(/Sindre Sorhus/), 1);
+	assert.equal(await memoized(/Sindre Sorhus/v), 1);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(/Sindre Sorhus/), 1);
+	assert.equal(await memoized(/Sindre Sorhus/v), 1);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(/Elvin Peng/), 2);
+	assert.equal(await memoized(/Elvin Peng/v), 2);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(/Elvin Peng/), 2);
+	assert.equal(await memoized(/Elvin Peng/v), 2);
 });
 
-test('memoize with Symbol arguments', async t => {
+test('memoize with Symbol arguments', async () => {
 	let index = 0;
 	const argument1 = Symbol('fixture1');
 	const argument2 = Symbol('fixture2');
 	const memoized = pMemoize(async () => index++);
-	t.is(await memoized(), 0);
-	t.is(await memoized(), 0);
+	assert.equal(await memoized(), 0);
+	assert.equal(await memoized(), 0);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(argument1), 1);
+	assert.equal(await memoized(argument1), 1);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(argument1), 1);
+	assert.equal(await memoized(argument1), 1);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(argument2), 2);
+	assert.equal(await memoized(argument2), 2);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized(argument2), 2);
+	assert.equal(await memoized(argument2), 2);
 });
 
-test('cache option', async t => {
+test('cache option', async () => {
 	let index = 0;
 	const fixture = async (..._arguments: any) => index++;
 	const memoized = pMemoize(fixture, {
@@ -170,13 +172,13 @@ test('cache option', async t => {
 	});
 	const foo = {};
 	const bar = {};
-	t.is(await memoized(foo), 0);
-	t.is(await memoized(foo), 0);
-	t.is(await memoized(bar), 1);
-	t.is(await memoized(bar), 1);
+	assert.equal(await memoized(foo), 0);
+	assert.equal(await memoized(foo), 0);
+	assert.equal(await memoized(bar), 1);
+	assert.equal(await memoized(bar), 1);
 });
 
-test('internal promise cache is only used if a value already exists in cache', async t => {
+test('internal promise cache is only used if a value already exists in cache', async () => {
 	let index = 0;
 	const fixture = async (..._arguments: any) => index++;
 	const cache = new Map();
@@ -185,40 +187,40 @@ test('internal promise cache is only used if a value already exists in cache', a
 		cacheKey: <ReturnValue>([firstArgument]: [ReturnValue]): ReturnValue => firstArgument,
 	});
 	const foo = {};
-	t.is(await memoized(foo), 0);
-	t.is(await memoized(foo), 0);
+	assert.equal(await memoized(foo), 0);
+	assert.equal(await memoized(foo), 0);
 	cache.delete(foo);
-	t.is(await memoized(foo), 1);
-	t.is(await memoized(foo), 1);
+	assert.equal(await memoized(foo), 1);
+	assert.equal(await memoized(foo), 1);
 });
 
-test('preserves the original function name', t => {
-	t.is(pMemoize(async function foo() {}).name, 'foo'); // eslint-disable-line func-names, @typescript-eslint/no-empty-function
+test('preserves the original function name', () => {
+	assert.equal(pMemoize(async function foo() {}).name, 'foo'); // eslint-disable-line func-names, @typescript-eslint/no-empty-function
 });
 
-test('disables caching', async t => {
+test('disables caching', async () => {
 	let index = 0;
 
 	const memoized = pMemoize(async () => index++, {cache: false});
 
-	t.is(await memoized(), 0);
-	t.is(await memoized(), 1);
-	t.is(await memoized(), 2);
-	t.deepEqual(await Promise.all([memoized(), memoized()]), [3, 3]);
+	assert.equal(await memoized(), 0);
+	assert.equal(await memoized(), 1);
+	assert.equal(await memoized(), 2);
+	assert.deepEqual(await Promise.all([memoized(), memoized()]), [3, 3]);
 });
 
-test('.pMemoizeClear()', async t => {
+test('.pMemoizeClear()', async () => {
 	let index = 0;
 	const fixture = async () => index++;
 	const memoized = pMemoize(fixture);
-	t.is(await memoized(), 0);
-	t.is(await memoized(), 0);
+	assert.equal(await memoized(), 0);
+	assert.equal(await memoized(), 0);
 	pMemoizeClear(memoized);
-	t.is(await memoized(), 1);
-	t.is(await memoized(), 1);
+	assert.equal(await memoized(), 1);
+	assert.equal(await memoized(), 1);
 });
 
-test('prototype support', async t => {
+test('prototype support', async () => {
 	class Unicorn {
 		index = 0;
 		async foo() {
@@ -230,12 +232,12 @@ test('prototype support', async t => {
 
 	const unicorn = new Unicorn();
 
-	t.is(await unicorn.foo(), 0);
-	t.is(await unicorn.foo(), 0);
-	t.is(await unicorn.foo(), 0);
+	assert.equal(await unicorn.foo(), 0);
+	assert.equal(await unicorn.foo(), 0);
+	assert.equal(await unicorn.foo(), 0);
 });
 
-test('.pMemoizeDecorator()', async t => {
+test('.pMemoizeDecorator()', async () => {
 	let returnValue = 1;
 	const returnValue2 = 101;
 
@@ -252,55 +254,55 @@ test('.pMemoizeDecorator()', async t => {
 	}
 
 	const alpha = new TestClass();
-	t.is(await alpha.counter(), 1);
-	t.is(await alpha.counter(), 1, 'The method should be memoized');
-	t.is(await alpha.counter2(), 101, 'The method should be memoized separately from the other one');
+	assert.equal(await alpha.counter(), 1);
+	assert.equal(await alpha.counter(), 1, 'The method should be memoized');
+	assert.equal(await alpha.counter2(), 101, 'The method should be memoized separately from the other one');
 
 	const beta = new TestClass();
-	t.is(await beta.counter(), 2, 'The method should not be memoized across instances');
+	assert.equal(await beta.counter(), 2, 'The method should not be memoized across instances');
 });
 
-test('.pMemoizeClear() throws when called with a plain function', t => {
-	t.throws(() => {
+test('.pMemoizeClear() throws when called with a plain function', () => {
+	assert.throws(() => {
 		pMemoizeClear(async () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
 	}, {
+		name: 'TypeError',
 		message: 'Can\'t clear a function that was not memoized!',
-		instanceOf: TypeError,
 	});
 });
 
-test('.pMemoizeClear() throws when called on an unclearable cache', t => {
+test('.pMemoizeClear() throws when called on an unclearable cache', () => {
 	const fixture = async () => 1;
 	const memoized = pMemoize(fixture, {
 		cache: new WeakMap(),
 	});
 
-	t.throws(() => {
+	assert.throws(() => {
 		pMemoizeClear(memoized);
 	}, {
+		name: 'TypeError',
 		message: 'The cache Map can\'t be cleared!',
-		instanceOf: TypeError,
 	});
 });
 
-test('.pMemoizeClear() throws when called on a disabled cache', t => {
+test('.pMemoizeClear() throws when called on a disabled cache', () => {
 	const fixture = async () => 1;
 	const memoized = pMemoize(fixture, {
 		cache: false,
 	});
 
-	t.throws(() => {
+	assert.throws(() => {
 		pMemoizeClear(memoized);
 	}, {
+		name: 'TypeError',
 		message: 'Can\'t clear a function that doesn\'t use a cache!',
-		instanceOf: TypeError,
 	});
 });
 
-test.serial('shouldCache: skips cache.set when predicate false', async t => {
+test('shouldCache: skips cache.set when predicate false', async () => {
 	let calls = 0;
 	const cache = new Map<unknown, unknown>();
-	const setSpy: Array<{key: unknown; value: unknown}> = [];
+	const recordedSets: Array<{key: unknown; value: unknown}> = [];
 	const wrappedCache = {
 		async has(key: unknown) {
 			return cache.has(key);
@@ -309,7 +311,7 @@ test.serial('shouldCache: skips cache.set when predicate false', async t => {
 			return cache.get(key);
 		},
 		async set(key: unknown, value: unknown) {
-			setSpy.push({key, value});
+			recordedSets.push({key, value});
 			cache.set(key, value);
 		},
 		delete(key: unknown) {
@@ -328,14 +330,14 @@ test.serial('shouldCache: skips cache.set when predicate false', async t => {
 	});
 
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized('a'), 1);
-	t.is(setSpy.length, 0, 'cache.set was not called');
+	assert.equal(await memoized('a'), 1);
+	assert.equal(recordedSets.length, 0, 'cache.set was not called');
 	// Next call should recompute since we skipped caching
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized('a'), 2);
+	assert.equal(await memoized('a'), 2);
 });
 
-test.serial('shouldCache: still de-dupes in-flight', async t => {
+test('shouldCache: still de-dupes in-flight', async () => {
 	const {promise, resolve} = pDefer<number>();
 	let invocationsCount = 0;
 	const memoized = pMemoize(async () => {
@@ -349,14 +351,14 @@ test.serial('shouldCache: still de-dupes in-flight', async t => {
 
 	const promise1 = memoized();
 	const promise2 = memoized();
-	t.is(promise1, promise2, 'in-flight promise is shared');
+	assert.equal(promise1, promise2, 'in-flight promise is shared');
 	resolve(42);
-	t.is(await promise1, 42);
-	t.is(await promise2, 42);
-	t.is(invocationsCount, 1);
+	assert.equal(await promise1, 42);
+	assert.equal(await promise2, 42);
+	assert.equal(invocationsCount, 1);
 });
 
-test.serial('shouldCache: not called when cache disabled', async t => {
+test('shouldCache: not called when cache disabled', async () => {
 	let called = 0;
 	let i = 0;
 	const memoized = pMemoize(async () => ++i, {
@@ -368,14 +370,14 @@ test.serial('shouldCache: not called when cache disabled', async t => {
 	});
 
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized('x'), 1);
+	assert.equal(await memoized('x'), 1);
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized('x'), 2);
-	t.is(called, 0);
+	assert.equal(await memoized('x'), 2);
+	assert.equal(called, 0);
 });
 
-test.serial('shouldCache: not called on rejection and nothing cached', async t => {
-	const setSpy: unknown[] = [];
+test('shouldCache: not called on rejection and nothing cached', async () => {
+	const recordedSets: unknown[] = [];
 	const cache = new Map<unknown, unknown>();
 	const wrappedCache = {
 		async has(key: unknown) {
@@ -385,7 +387,7 @@ test.serial('shouldCache: not called on rejection and nothing cached', async t =
 			return cache.get(key);
 		},
 		async set(key: unknown, value: unknown) {
-			setSpy.push([key, value]);
+			recordedSets.push([key, value]);
 			cache.set(key, value);
 		},
 	} as const;
@@ -402,13 +404,13 @@ test.serial('shouldCache: not called on rejection and nothing cached', async t =
 	});
 
 	// @ts-expect-error Argument type does not match
-	await t.throwsAsync(async () => memoized('x'), {message: 'boom'});
-	t.is(called, 0);
-	t.is(setSpy.length, 0);
+	await assert.rejects(memoized('x'), {message: 'boom'});
+	assert.equal(called, 0);
+	assert.equal(recordedSets.length, 0);
 });
 
-test.serial('shouldCache: supports async predicate', async t => {
-	const setSpy: Array<{key: unknown; value: unknown}> = [];
+test('shouldCache: supports async predicate', async () => {
+	const recordedSets: Array<{key: unknown; value: unknown}> = [];
 	const cache = new Map<unknown, unknown>();
 	const wrappedCache = {
 		async has(key: unknown) {
@@ -418,7 +420,7 @@ test.serial('shouldCache: supports async predicate', async t => {
 			return cache.get(key);
 		},
 		async set(key: unknown, value: unknown) {
-			setSpy.push({key, value});
+			recordedSets.push({key, value});
 			cache.set(key, value);
 		},
 		delete(key: unknown) {
@@ -435,12 +437,12 @@ test.serial('shouldCache: supports async predicate', async t => {
 	});
 
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized('x'), 'ok');
-	t.is(setSpy.length, 1, 'cache.set was called once');
+	assert.equal(await memoized('x'), 'ok');
+	assert.equal(recordedSets.length, 1, 'cache.set was called once');
 });
 
-test.serial('shouldCache: works with custom cacheKey', async t => {
-	const setKeys: unknown[] = [];
+test('shouldCache: works with custom cacheKey', async () => {
+	const recordedKeys: unknown[] = [];
 	const cache = new Map<unknown, unknown>();
 	const wrappedCache = {
 		async has(key: unknown) {
@@ -450,7 +452,7 @@ test.serial('shouldCache: works with custom cacheKey', async t => {
 			return cache.get(key);
 		},
 		async set(key: unknown, value: unknown) {
-			setKeys.push(key);
+			recordedKeys.push(key);
 			cache.set(key, value);
 		},
 		delete(key: unknown) {
@@ -462,19 +464,19 @@ test.serial('shouldCache: works with custom cacheKey', async t => {
 		cache: wrappedCache,
 		cacheKey: ([first]) => String(first),
 		shouldCache(_value, {key, argumentsList}) {
-			t.is(key, String(argumentsList[0]));
+			assert.equal(key, String(argumentsList[0]));
 			return true;
 		},
 	});
 
 	// @ts-expect-error Argument type does not match
 	await memoized(1);
-	t.deepEqual(setKeys, ['1']);
+	assert.deepEqual(recordedKeys, ['1']);
 });
 
-test.serial('shouldCache: predicate error bubbles and does not cache', async t => {
+test('shouldCache: predicate error bubbles and does not cache', async () => {
 	const cache = new Map<unknown, unknown>();
-	const setSpy: unknown[] = [];
+	const recordedSets: unknown[] = [];
 	const wrappedCache = {
 		async has(key: unknown) {
 			return cache.has(key);
@@ -483,7 +485,7 @@ test.serial('shouldCache: predicate error bubbles and does not cache', async t =
 			return cache.get(key);
 		},
 		async set(key: unknown, value: unknown) {
-			setSpy.push([key, value]);
+			recordedSets.push([key, value]);
 			cache.set(key, value);
 		},
 		delete(key: unknown) {
@@ -499,11 +501,11 @@ test.serial('shouldCache: predicate error bubbles and does not cache', async t =
 	});
 
 	// @ts-expect-error Argument type does not match
-	await t.throwsAsync(async () => memoized('k'), {message: 'nope'});
-	t.is(setSpy.length, 0);
+	await assert.rejects(memoized('k'), {message: 'nope'});
+	assert.equal(recordedSets.length, 0);
 });
 
-test.serial('shouldCache: interop with external eviction', async t => {
+test('shouldCache: interop with external eviction', async () => {
 	// Simulate external TTL eviction by deleting after set.
 	const cache = new Map<unknown, unknown>();
 	const wrappedCache = {
@@ -530,11 +532,11 @@ test.serial('shouldCache: interop with external eviction', async t => {
 	});
 
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized('a'), 1);
+	assert.equal(await memoized('a'), 1);
 	// Evict externally
 	wrappedCache.delete('a');
 	// @ts-expect-error Argument type does not match
-	t.is(await memoized('a'), 2);
+	assert.equal(await memoized('a'), 2);
 });
 
 {

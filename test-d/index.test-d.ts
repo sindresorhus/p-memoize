@@ -1,6 +1,7 @@
 import {expectType} from 'tsd';
 import pMemoize, {pMemoizeClear, pMemoizeDecorator} from '../index.js';
 
+// eslint-disable-next-line unicorn/consistent-boolean-name -- the fixture returns a boolean by design.
 const fn = async (text: string) => Boolean(text);
 
 expectType<typeof fn>(pMemoize(fn));
@@ -13,9 +14,14 @@ expectType<typeof fn>(pMemoize(fn, {
 expectType<typeof fn>(pMemoize(fn, {cache: new Map<string, boolean>()}));
 expectType<typeof fn>(pMemoize(fn, {cache: false}));
 
-/* Overloaded function tests */
+/*
+Overloaded function tests
+*/
+// eslint-disable-next-line unicorn/consistent-boolean-name -- the parameter names document the overloads.
 async function overloadedFn(parameter: false): Promise<false>;
+// eslint-disable-next-line unicorn/consistent-boolean-name -- the parameter names document the overloads.
 async function overloadedFn(parameter: true): Promise<true>;
+// eslint-disable-next-line unicorn/consistent-boolean-name -- the parameter names document the overloads.
 async function overloadedFn(parameter: boolean): Promise<boolean> {
 	return parameter;
 }
