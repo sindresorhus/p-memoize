@@ -1,6 +1,6 @@
 import mimicFunction from 'mimic-function';
 
-// Deliberately `Promise`, not `PromiseLike`, so that a function is not memoized on the strength of returning some other thenable.
+// Deliberately `Promise`, not `PromiseLike`, so that a function returning some other thenable is not typed as memoizable. That is a compile-time restriction only; at runtime a thenable is awaited and cached like a promise.
 export type AnyAsyncFunction = (...arguments_: readonly any[]) => Promise<unknown | void>;
 
 type AsyncReturnType<FunctionType extends AnyAsyncFunction> = Awaited<ReturnType<FunctionType>>;
@@ -82,7 +82,7 @@ export type Options<
 	CacheKeyType,
 > = {
 	/**
-	Determines the cache key for storing the result based on the function arguments. By default, __only the first argument is considered__ and it only works with [primitives](https://developer.mozilla.org/docs/Glossary/Primitive).
+	Determines the cache key for storing the result based on the function arguments. By default, __only the first argument is considered__ and it is compared by strict equality, so two objects only share an entry when they are the same one.
 
 	A `cacheKey` function can return any type supported by `Map` (or whatever structure you use in the `cache` option).
 
@@ -104,7 +104,7 @@ export type Options<
 	```
 
 	- A call with no arguments has an undefined first argument, so it shares an entry with a call passing `undefined` explicitly. Pass a `cacheKey` that also looks at the argument count to tell them apart.
-	- An `async` `cacheKey` is rejected outright: a promise is a fresh object on every call, so every key would be unique and nothing would ever be memoized.
+	- A `cacheKey` that returns a promise is rejected by the type: a promise is a fresh object on every call, so every key would be unique and nothing would ever be memoized.
 	- The receiver (`this`) is not part of the key, and `cacheKey` cannot see it. A method memoized on a prototype, or one given a `cache` that is shared between instances, returns whichever instance's result was cached first. Use `pMemoizeDecorator()` without a custom `cache` for methods that depend on the instance.
 
 	@default arguments_ => arguments_[0]
@@ -116,7 +116,7 @@ export type Options<
 	Use a different cache storage. Must implement the following methods: `.has(key)`, `.get(key)`, and `.set(key, value)`, and optionally `.clear()`. You could for example use a `WeakMap` instead or [`quick-lru`](https://github.com/sindresorhus/quick-lru) for a LRU cache. To disable caching so that only concurrent executions resolve with the same value, pass `false`.
 
 	- `.has()` decides whether there is a hit, and `.get()` is only called on a hit, to supply the value. If the two disagree, for example because the entry is evicted in between, the call resolves to `undefined` without running the function.
-	- Its key type must be the one `cacheKey` produces, which by default is the first argument's type. TypeScript infers that type from whichever of `cacheKey` and `cache` it can, so a cache keyed by something else is not reported until it throws on the first write.
+	- Its key type must be the one `cacheKey` produces, which by default is the first argument's type. TypeScript cannot always check this, so a cache keyed by something else may only fail at runtime, depending on the cache.
 	- A cache with no `.clear()` cannot be emptied by `pMemoizeClear()`, and a `WeakMap` has none.
 
 	@default new Map()
@@ -167,7 +167,6 @@ For an overloaded function, the option types come from one of its overloads, bec
 
 @example
 ```
-import {setTimeout as delay} from 'node:timer/promises';
 import pMemoize from 'p-memoize';
 import got from 'got';
 
@@ -177,12 +176,9 @@ await memoizedGot('https://sindresorhus.com');
 
 // This call is cached
 await memoizedGot('https://sindresorhus.com');
-
-await delay(2000);
-
-// This call is not cached as the cache has expired
-await memoizedGot('https://sindresorhus.com');
 ```
+
+The default cache keeps every value for as long as the memoized function exists. To let entries expire, pass a `cache` that does it, which the readme's "Time-based cache expiration" section covers.
 */
 export default function pMemoize<
 	FunctionToMemoize extends AnyAsyncFunction,
@@ -317,7 +313,7 @@ export default function pMemoize<
 /**
 - Only class methods are supported; regular functions are not part of the decorators proposals.
 - Uses the new ECMAScript decorators (TypeScript 5.0+). Legacy `experimentalDecorators` are not supported.
-- Babel’s legacy decorators are not supported.
+- Babel’s legacy decorators are not supported as they implement a different proposal variant.
 - Private methods are not supported.
 - Put `@pMemoizeDecorator()` first (topmost) when you combine it with other method decorators. Decorators are applied from the bottom up, so a decorator listed above it replaces the method after it, and the memoized copy is then skipped so that it does not hide that replacement. This happens silently.
 - A subclass that overrides the method is not memoized for it, and a `super.method()` call from the override reaches the original, unmemoized method.

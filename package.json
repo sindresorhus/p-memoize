@@ -16,7 +16,7 @@
 		"node": ">=22"
 	},
 	"scripts": {
-		"test": "xo && node --import=tsimp/import --test test.ts && npm run build && tsd --typings dist/index.d.ts",
+		"test": "xo && node --import=tsimp/import --test test.ts && npm run build && nz",
 		"build": "del-cli dist && tsc",
 		"prepack": "npm run build"
 	},
@@ -49,11 +49,12 @@
 	"devDependencies": {
 		"@sindresorhus/tsconfig": "^8.1.0",
 		"@types/serialize-javascript": "^5.0.4",
+		"@typescript/native": "npm:typescript@^7.0.2",
 		"del-cli": "^7.0.0",
+		"nz": "^0.1.0",
 		"p-defer": "^4.0.1",
 		"p-state": "^3.0.0",
 		"serialize-javascript": "^7.1.2",
-		"tsd": "^0.33.0",
 		"tsimp": "^2.0.12",
 		"xo": "^5.0.1"
 	},
