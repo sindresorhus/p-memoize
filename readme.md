@@ -34,7 +34,7 @@ await memoizedGot('https://sindresorhus.com');
 
 Similar to the [caching strategy for `memoize`](https://github.com/sindresorhus/memoize#options) with the following exceptions:
 
-- Promises returned from a memoized function are locally cached until resolving, when their value is added to `cache`. Special properties assigned to a returned promise will not be kept after resolution and every promise may need to resolve with a serializable object if caching results in a database.
+- Promises returned from a memoized function are locally cached until resolving, when their value is added to `cache`. After that, each call returns a new promise for the cached value, so it is not the same object as before and special properties assigned to it are not kept. See [stable promise identity](#stable-promise-identity) if you need the same promise, for example for React's `use()`. Every promise may need to resolve with a serializable object if caching results in a database.
 - Whatever the function resolves to is cached as it is, so a one-shot value (an async generator, a `Readable`) is handed to every later caller already consumed.
 - Concurrent calls with the same key share one execution, so neither the function nor its `shouldCache` predicate may await a nested call for that same key. The nested call joins the one already running, which is waiting on it, and neither ever settles.
 - `.get()`, `.has()` and `.set()` methods on `cache` can run asynchronously by returning a promise.
@@ -231,6 +231,25 @@ const memoizedGot = pMemoize(async (url, options) => pReflect(got(url, options))
 
 await memoizedGot('https://example.com');
 // {isFulfilled: true, isRejected: false, value: '...'}
+```
+
+### Stable promise identity
+
+The cache keeps the resolved value, not the promise, so that it can be async or live outside the process. Some APIs need the same promise on every call. For example, React's `use()` shows the Suspense fallback again when it gets a new promise on a re-render. For those, keep the promise itself in a `Map`, without p-memoize. Remove the entry when the promise rejects, so that a later call can try again:
+
+```js
+const cache = new Map();
+
+function getUser(id) {
+	if (!cache.has(id)) {
+		cache.set(id, fetchUser(id).catch(error => {
+			cache.delete(id);
+			throw error;
+		}));
+	}
+
+	return cache.get(id);
+}
 ```
 
 ## Related
